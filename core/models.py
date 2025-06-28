@@ -38,7 +38,7 @@ class Contractor(models.Model):
 
 class InfraWork(models.Model):
     road = models.ForeignKey(Road, on_delete=models.CASCADE)
-    phase = models.CharField(max_length=50)
+    phase = models.CharField(max_length=500)
     description = models.TextField()
     start_date = models.DateField()
     end_date = models.DateField()

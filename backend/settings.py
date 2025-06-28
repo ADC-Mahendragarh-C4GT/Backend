@@ -25,8 +25,10 @@ SECRET_KEY = 'django-insecure-lu5q!k1jbxjot9sp#5-@tobb7xuinxaojv4pi42a&n(inthf!5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
+# Custom user model
+AUTH_USER_MODEL = 'accounts.CustomUser'
 
 # Application definition
 
@@ -39,6 +41,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'core',
     'rest_framework',
+    'accounts',
 ]
 
 MIDDLEWARE = [
