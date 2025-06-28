@@ -1,5 +1,7 @@
 from django.db import models
+from accounts.models import CustomUser
 
+# Define choices for road categories, types, and material types
 ROAD_CATEGORY_CHOICES = (
     ('ColonyStreet', 'Colony Street'),
     ('Road', 'Road')
@@ -29,12 +31,18 @@ class Road(models.Model):
     material_type = models.CharField( choices=MATERIAL_TYPE_CHOICES, default='CC')
     road_category = models.CharField( choices=ROAD_CATEGORY_CHOICES, default='Road')
 
+    def __str__(self):
+        return f"{self.unique_code} ({self.road_type}) ({self.road_name})"
+
 class Contractor(models.Model):
     contractor_name = models.CharField(max_length=100)
     contact_person = models.CharField(max_length=100, blank=True, null=True)
     contact_number = models.CharField(max_length=15, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     address = models.TextField(blank=True, null=True)
+
+    def __str__(self):  
+        return self.contractor_name
 
 class InfraWork(models.Model):
     road = models.ForeignKey(Road, on_delete=models.CASCADE)
@@ -45,6 +53,10 @@ class InfraWork(models.Model):
     progress_percent = models.IntegerField()
     cost = models.DecimalField(max_digits=1000, decimal_places=2)
     contractor = models.ForeignKey(Contractor, on_delete=models.SET_NULL, null=True)
+    completedOrpending = models.CharField(max_length=20, choices=[('Completed', 'Completed'), ('Pending', 'Pending')], default='Pending')
+
+    def __str__(self):
+        return f"{self.road.road_name} - {self.phase} ({self.start_date} to {self.end_date})"
 
 class Update(models.Model):
     work = models.ForeignKey(InfraWork, on_delete=models.CASCADE)
@@ -52,3 +64,15 @@ class Update(models.Model):
     status_note = models.TextField()
     progress_percent = models.IntegerField()
 
+    def __str__(self):
+        return f"Update on {self.update_date} for {self.work.road.road_name}: {self.status_note[:50]}..."
+
+class Comments(models.Model):
+    update = models.ForeignKey(Update, on_delete=models.CASCADE)
+    infra_work = models.ForeignKey(InfraWork, on_delete=models.CASCADE, related_name='comments')
+    comment_text = models.TextField()
+    commenter_name = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    comment_date = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.commenter_name} on {self.update.update_date}: {self.comment_text[:50]}..."
