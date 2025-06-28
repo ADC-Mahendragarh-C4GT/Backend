@@ -1,14 +1,14 @@
 from rest_framework import serializers
-from .models import Road, Vendor, InfraWork, Update
+from .models import Road, Contractor, InfraWork, Update
 
 class RoadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Road
         fields = '__all__'
 
-class VendorSerializer(serializers.ModelSerializer):
+class ContractorSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Vendor
+        model = Contractor
         fields = '__all__'
 
 class InfraWorkSerializer(serializers.ModelSerializer):

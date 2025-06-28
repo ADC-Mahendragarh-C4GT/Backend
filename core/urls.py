@@ -1,10 +1,10 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import RoadViewSet, VendorViewSet, InfraWorkViewSet, UpdateViewSet
+from .views import *
 
 router = DefaultRouter()
 router.register('roads', RoadViewSet)
-router.register('vendors', VendorViewSet)
+router.register('contractors', ContractorViewSet)
 router.register('infra-works', InfraWorkViewSet)
 router.register('updates', UpdateViewSet)
 
