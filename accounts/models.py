@@ -3,9 +3,13 @@ from django.db import models
 
 class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = (
-        ('jr_engineer', 'Junior Engineer'),
-        ('sr_engineer', 'Senior Engineer'),
-        ('adc', 'ADC'),
+        ('JE', 'Junior Engineer'),
+        ('AE', 'Assistant Engineer'),
+        ('XEN', 'Executive Engineer'),
+        ('SE', 'Superintending Engineer'),
+        ('CE', 'Chief Engineer'),
+        ('JCMC', 'Joint Commissioner, Municipal Corporation'),
+        ('CMC', 'Commissioner, Municipal Corporation'),
     )
 
     user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES, default='other')

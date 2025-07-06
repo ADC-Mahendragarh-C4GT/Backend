@@ -10,6 +10,7 @@ ROAD_CATEGORY_CHOICES = (
 ROAD_TYPE_CHOICES = (
     ('IV', 'Road Type IV'),
     ('VI', 'Road Type VI'),
+    ('others', 'Other Road Type')
 )
 
 MATERIAL_TYPE_CHOICES = (
