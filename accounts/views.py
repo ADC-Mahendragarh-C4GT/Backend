@@ -37,3 +37,12 @@ class LogoutView(APIView):
     def post(self, request):
         logout(request)
         return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+
+
+class UserTypeListView(APIView):
+    def get(self, request):
+        choices = [
+            {"value": value, "label": label}
+            for value, label in CustomUser.USER_TYPE_CHOICES
+        ]
+        return Response(choices)
