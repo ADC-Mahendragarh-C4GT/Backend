@@ -28,12 +28,32 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
 
 
+from django.contrib.auth import authenticate, get_user_model
+from rest_framework import serializers
+
+User = get_user_model()
+
 class LoginSerializer(serializers.Serializer):
-    username = serializers.CharField()
+    email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
+    user_type = serializers.CharField()
 
     def validate(self, data):
-        user = authenticate(username=data['username'], password=data['password'])
+        email = data['email']
+        password = data['password']
+        user_type = data['user_type']
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Invalid email or password")
+
+        if user.user_type != user_type:
+            raise serializers.ValidationError("Invalid user type")
+
+        # Authenticate with username and password
+        user = authenticate(username=user.username, password=password)
         if user and user.is_active:
             return user
-        raise serializers.ValidationError("Invalid username or password")
+
+        raise serializers.ValidationError("Invalid email or password")
