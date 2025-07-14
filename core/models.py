@@ -55,7 +55,7 @@ class InfraWork(models.Model):
     cost = models.DecimalField(max_digits=1000, decimal_places=2)
     contractor = models.ForeignKey(Contractor, on_delete=models.SET_NULL, null=True)
     completedOrpending = models.CharField(max_length=20, choices=[('Completed', 'Completed'), ('Pending', 'Pending')], default='Pending')
-
+    defect_liability_period = models.IntegerField(help_text="Defect Liability Period in months", default=0, null=True, blank=True)
     def __str__(self):
         return f"{self.road.road_name} - {self.phase} ({self.start_date} to {self.end_date})"
 

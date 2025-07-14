@@ -12,11 +12,16 @@ class ContractorSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class InfraWorkSerializer(serializers.ModelSerializer):
+    road = RoadSerializer()
+    contractor = ContractorSerializer()
+
     class Meta:
         model = InfraWork
         fields = '__all__'
 
 class UpdateSerializer(serializers.ModelSerializer):
+    work = InfraWorkSerializer()
+
     class Meta:
         model = Update
         fields = '__all__'
