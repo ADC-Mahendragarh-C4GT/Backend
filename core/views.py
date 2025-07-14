@@ -15,5 +15,12 @@ class InfraWorkViewSet(viewsets.ModelViewSet):
     serializer_class = InfraWorkSerializer
 
 class UpdateViewSet(viewsets.ModelViewSet):
+    queryset = Update.objects.all().order_by('-update_date')
+    serializer_class = UpdateSerializer
+
+
+from rest_framework import generics
+
+class UpdateListView(generics.ListAPIView):
     queryset = Update.objects.all()
     serializer_class = UpdateSerializer

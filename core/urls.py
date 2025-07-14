@@ -9,5 +9,6 @@ router.register('infra-works', InfraWorkViewSet)
 router.register('updates', UpdateViewSet)
 
 urlpatterns = [
+    path('api/updatesPage/', UpdateListView.as_view(), name='update-list'),
     path('api/', include(router.urls)),
 ]
