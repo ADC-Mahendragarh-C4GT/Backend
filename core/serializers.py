@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Road, Contractor, InfraWork, Update
+from .models import *
+from accounts.serializers import UserSerializer
 
 class RoadSerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,4 +25,12 @@ class UpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Update
+        fields = '__all__'
+
+class CommentsSerializer(serializers.ModelSerializer):
+    update = UpdateSerializer()
+    infra_work = InfraWorkSerializer()
+    commenter = UserSerializer()
+    class Meta:
+        model = Comments
         fields = '__all__'

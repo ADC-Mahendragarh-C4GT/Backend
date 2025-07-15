@@ -72,7 +72,7 @@ class Comments(models.Model):
     update = models.ForeignKey(Update, on_delete=models.CASCADE)
     infra_work = models.ForeignKey(InfraWork, on_delete=models.CASCADE, related_name='comments')
     comment_text = models.TextField()
-    commenter_name = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    commenter = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     comment_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

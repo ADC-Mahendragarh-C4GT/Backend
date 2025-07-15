@@ -5,8 +5,9 @@ from .views import *
 router = DefaultRouter()
 router.register('roads', RoadViewSet)
 router.register('contractors', ContractorViewSet)
-router.register('infra-works', InfraWorkViewSet)
+router.register(r'infra-works', InfraWorkViewSet)
 router.register('updates', UpdateViewSet)
+router.register('comments', CommentsListView)
 
 urlpatterns = [
     path('api/updatesPage/', UpdateListView.as_view(), name='update-list'),
