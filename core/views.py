@@ -32,12 +32,21 @@ class UpdateViewSet(viewsets.ModelViewSet):
 from rest_framework import generics
 
 class UpdateListView(generics.ListAPIView):
-    queryset = Update.objects.all()
-    serializer_class = UpdateSerializer
+    queryset = InfraWork.objects.all().order_by('-start_date')
+    serializer_class = InfraWorkSerializer
 
 
-class CommentsListView(generics.ListAPIView):
-    queryset = Comments.objects.all().order_by('-comment_date')
+class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializer
+
+    def get_queryset(self):
+        queryset = Comments.objects.all().order_by('-comment_date')
+        work_id = self.request.query_params.get('work_id')
+        if work_id:
+            queryset = queryset.filter(infra_work__id=work_id)
+        return queryset
     
-    
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update']:
+            return CommentCreateSerializer
+        return CommentsSerializer 

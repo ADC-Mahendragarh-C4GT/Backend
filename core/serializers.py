@@ -34,3 +34,16 @@ class CommentsSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comments
         fields = '__all__'
+
+class CommentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Comments
+        fields = ['infra_work', 'update', 'comment_text']
+
+    def create(self, validated_data):
+        user = self.context['request'].user
+        if not user.is_authenticated:
+            raise serializers.ValidationError("Authentication required to comment.")
+        validated_data['commenter'] = user
+        return super().create(validated_data)
+

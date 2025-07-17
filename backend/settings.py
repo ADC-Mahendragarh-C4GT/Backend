@@ -141,3 +141,20 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': env.int('DEFAULT_PAGE_SIZE'),  
 }
+
+raw_choices = env(
+    'USER_TYPE_CHOICES',
+    default='JE:Junior Engineer,AE:Assistant Engineer,XEN:Executive Engineer,SE:Superintending Engineer,CE:Chief Engineer,JCMC:Joint Commissioner,CMC:Commissioner'
+)
+
+USER_TYPE_CHOICES = []
+for item in raw_choices.split(","):
+    try:
+        value, label = item.split(":", 1)
+        USER_TYPE_CHOICES.append((value.strip(), label.strip()))
+    except ValueError:
+        pass
+
+globals()['USER_TYPE_CHOICES'] = USER_TYPE_CHOICES
+
+

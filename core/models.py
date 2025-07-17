@@ -1,11 +1,16 @@
 from django.db import models
 from accounts.models import CustomUser
+from django.conf import settings
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 # Define choices for road categories, types, and material types
 ROAD_CATEGORY_CHOICES = (
     ('ColonyStreet', 'Colony Street'),
     ('Road', 'Road')
 )
+
+user_type_choices = settings.USER_TYPE_CHOICES
 
 ROAD_TYPE_CHOICES = (
     ('IV', 'Road Type IV'),
@@ -68,6 +73,17 @@ class Update(models.Model):
     def __str__(self):
         return f"Update on {self.update_date} for {self.work.road.road_name}: {self.status_note[:50]}..."
 
+
+@receiver(post_save, sender=Update)
+def update_infra_work_progress(sender, instance, created, **kwargs):
+    if created:
+        if(instance.progress_percent == 100):
+            instance.work.completedOrpending = 'Completed' 
+        infra_work = instance.work
+        # set InfraWork.progress_percent = latest update's progress_percent
+        infra_work.progress_percent = instance.progress_percent
+        infra_work.save()
+
 class Comments(models.Model):
     update = models.ForeignKey(Update, on_delete=models.CASCADE)
     infra_work = models.ForeignKey(InfraWork, on_delete=models.CASCADE, related_name='comments')
@@ -76,4 +92,5 @@ class Comments(models.Model):
     comment_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.commenter_name} on {self.update.update_date}: {self.comment_text[:50]}..."
+        return f"{self.commenter.first_name} {self.commenter.last_name} {self.commenter.user_type} on {self.update.update_date}: {self.comment_text[:50]}..."
+        

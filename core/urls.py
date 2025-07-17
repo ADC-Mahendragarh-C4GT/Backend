@@ -7,7 +7,7 @@ router.register('roads', RoadViewSet)
 router.register('contractors', ContractorViewSet)
 router.register(r'infra-works', InfraWorkViewSet)
 router.register('updates', UpdateViewSet)
-router.register('comments', CommentsListView)
+router.register(r'comments', CommentsViewSet, basename='comment')
 
 urlpatterns = [
     path('api/updatesPage/', UpdateListView.as_view(), name='update-list'),
