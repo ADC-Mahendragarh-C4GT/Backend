@@ -9,11 +9,16 @@ class UserSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True)
+    password2 = serializers.CharField(write_only=True)
 
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'first_name', 'last_name', 'password', 'user_type', 'phone_number']
+        fields = ['username', 'email', 'first_name', 'last_name', 'password', 'password2', 'user_type', 'phone_number']
+
+    def validate(self, data):
+        if data['password'] != data['password2']:
+            raise serializers.ValidationError("Passwords must match")
+        return super().validate(data)
 
     def create(self, validated_data):
         return CustomUser.objects.create_user(
@@ -25,34 +30,3 @@ class RegisterSerializer(serializers.ModelSerializer):
             user_type=validated_data.get('user_type', 'other'),
             phone_number=validated_data.get('phone_number')
         )
-
-
-from django.contrib.auth import authenticate, get_user_model
-from rest_framework import serializers
-
-User = get_user_model()
-
-class LoginSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    password = serializers.CharField(write_only=True)
-    user_type = serializers.CharField()
-
-    def validate(self, data):
-        email = data['email']
-        password = data['password']
-        user_type = data['user_type']
-
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            raise serializers.ValidationError("Invalid email or password")
-
-        if user.user_type != user_type:
-            raise serializers.ValidationError("Invalid user type")
-
-        # Authenticate with username and password
-        user = authenticate(username=user.username, password=password)
-        if user and user.is_active:
-            return user
-
-        raise serializers.ValidationError("Invalid email or password")
