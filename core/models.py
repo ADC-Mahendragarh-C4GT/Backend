@@ -94,3 +94,18 @@ class Comments(models.Model):
     def __str__(self):
         return f"{self.commenter.first_name} {self.commenter.last_name} {self.commenter.user_type} on {self.update.update_date}: {self.comment_text[:50]}..."
         
+
+class OtherDepartmentRequest(models.Model):
+    department_name = models.CharField(max_length=255)
+    road = models.ForeignKey(Road, on_delete=models.CASCADE)
+    work_description = models.TextField()
+    requested_by = models.CharField(max_length=255)
+    contact_info = models.CharField(max_length=255)
+    status = models.CharField(max_length=50, choices=[('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected')], default='Pending')
+    response = models.TextField(blank=True, null=True)
+    response_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True)
+    response_date = models.DateTimeField(blank=True, null=True)
+    submitted_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.road.road_name} - {self.requested_by} - {self.department_name} ({self.status})"

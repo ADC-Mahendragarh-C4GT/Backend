@@ -3,10 +3,16 @@ from .models import *
 from .serializers import *
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.permissions import AllowAny
+from rest_framework import status
+
 
 class RoadViewSet(viewsets.ModelViewSet):
     queryset = Road.objects.all()
     serializer_class = RoadSerializer
+    authentication_classes = []
+    permission_classes = [AllowAny]
+    
 
 class ContractorViewSet(viewsets.ModelViewSet):
     queryset = Contractor.objects.all()
@@ -50,3 +56,10 @@ class CommentsViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return CommentCreateSerializer
         return CommentsSerializer 
+    
+
+class OtherDepartmentRequestViewSet(viewsets.ModelViewSet):
+    queryset = OtherDepartmentRequest.objects.all()
+    serializer_class = OtherDepartmentRequestSerializer
+    permission_classes = [AllowAny]
+    authentication_classes = []
