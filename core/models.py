@@ -102,8 +102,7 @@ class OtherDepartmentRequest(models.Model):
     requested_by = models.CharField(max_length=255)
     contact_info = models.CharField(max_length=255)
     status = models.CharField(max_length=50, choices=[('Pending', 'Pending'), ('Approved', 'Approved'), ('Rejected', 'Rejected')], default='Pending')
-    response = models.TextField(blank=True, null=True)
-    response_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True)
+    response_by = models.CharField(max_length=255, null=True, blank=True)
     response_date = models.DateTimeField(blank=True, null=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
     

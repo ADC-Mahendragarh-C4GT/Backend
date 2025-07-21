@@ -41,7 +41,10 @@ class LoginView(APIView):
                 'user_id': user.id,
                 'username': user.username,
                 'email': user.email,
-                'user_type': user.user_type
+                'user_type': user.user_type,
+                'user_username':user.username,
+                'userFirstName': user.first_name,
+                'userLastName':user.last_name
             }, status=status.HTTP_200_OK)
         
         return Response({'message': 'Invalid Credentials','status': False}, status=status.HTTP_400_BAD_REQUEST)

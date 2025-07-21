@@ -53,13 +53,4 @@ class OtherDepartmentRequestSerializer(serializers.ModelSerializer):
         model = OtherDepartmentRequest
         fields = '__all__'
 
-    def create(self, validated_data):
-        request =  OtherDepartmentRequest.objects.create(
-            department_name = validated_data['department_name'],
-            road = validated_data['road'],
-            work_description = validated_data['work_description'],
-            requested_by = validated_data['requested_by'],
-            contact_info = validated_data['contact_info'],
-            
-        )
-        return request
+    

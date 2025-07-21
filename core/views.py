@@ -3,8 +3,9 @@ from .models import *
 from .serializers import *
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
+from django.utils import timezone
 
 
 class RoadViewSet(viewsets.ModelViewSet):
@@ -57,9 +58,24 @@ class CommentsViewSet(viewsets.ModelViewSet):
             return CommentCreateSerializer
         return CommentsSerializer 
     
-
 class OtherDepartmentRequestViewSet(viewsets.ModelViewSet):
     queryset = OtherDepartmentRequest.objects.all()
     serializer_class = OtherDepartmentRequestSerializer
-    permission_classes = [AllowAny]
-    authentication_classes = []
+
+    def get_permissions(self):
+        if self.action == 'create':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+    def perform_update(self, serializer):
+        instance = serializer.instance
+
+        if not serializer.validated_data.get('response_by'):
+
+            serializer.save(
+                response_date=timezone.now(),
+                
+            )
+
+        else:
+            serializer.save()
