@@ -6,7 +6,10 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework import status
 from django.utils import timezone
-
+from rest_framework.views import APIView
+import csv
+import random
+import string
 
 class RoadViewSet(viewsets.ModelViewSet):
     queryset = Road.objects.all()
@@ -79,3 +82,50 @@ class OtherDepartmentRequestViewSet(viewsets.ModelViewSet):
 
         else:
             serializer.save()
+
+
+class UploadCSVView(APIView):
+    permission_classes = [IsAuthenticated]  # or [IsAuthenticated]
+
+    def post(self, request, *args, **kwargs):
+        csv_file = request.FILES.get('file')
+        if not csv_file:
+            return Response({"error": "No file provided."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            decoded_file = csv_file.read().decode('utf-8').splitlines()
+            reader = csv.DictReader(decoded_file)
+
+            for row in reader:
+                all_characters = (
+                    string.ascii_lowercase +  
+                    string.ascii_uppercase +  
+                    string.digits  
+                )
+                flag = True
+                while flag:
+                    specialCharactor = random.choice(all_characters)
+                    unique_code =( row['state'][0] + row['district'][0] + row['area_name'][0] + row['length_km'].split('.')[0] + specialCharactor)
+                    # Check if this code already exists
+                    if not Road.objects.filter(unique_code=unique_code).exists():
+                        flag = False
+                       
+                Road.objects.create(
+                    road_name=row['road_name'],
+                    ward_number=row['ward_number'],
+                    location=row['location'],
+                    length_km=row['length_km'],
+                    width_m=row['width_m'],
+                    road_type=row['road_type'],
+                    material_type=row['material_type'],
+                    road_category=row['road_category'],
+                    area_name = row['area_name'],
+                    district = row['district'],
+                    state = row['state'],
+                    unique_code = unique_code,
+                )
+
+            return Response({"message": "CSV uploaded & saved successfully!"}, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

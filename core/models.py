@@ -36,6 +36,9 @@ class Road(models.Model):
     road_type = models.CharField( choices=ROAD_TYPE_CHOICES, default='IV')
     material_type = models.CharField( choices=MATERIAL_TYPE_CHOICES, default='CC')
     road_category = models.CharField( choices=ROAD_CATEGORY_CHOICES, default='Road')
+    area_name = models.CharField(default='Gumanpura', blank=True, null=True)
+    district = models.CharField(default='Kota', blank=True, null= True)
+    state = models.CharField(default='Rajasthan', blank=True, null=True)
 
     def __str__(self):
         return f"{self.unique_code} ({self.road_type}) ({self.road_name})"

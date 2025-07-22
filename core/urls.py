@@ -14,5 +14,6 @@ router.register(r'other-department-requests', OtherDepartmentRequestViewSet, bas
 
 urlpatterns = [
     path('api/updatesPage/', UpdateListView.as_view(), name='update-list'),
+    path('upload-csv/', UploadCSVView.as_view(), name='upload-csv'),
     path('api/', include(router.urls)),
 ]
