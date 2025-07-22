@@ -7,7 +7,8 @@ from django.dispatch import receiver
 # Define choices for road categories, types, and material types
 ROAD_CATEGORY_CHOICES = (
     ('ColonyStreet', 'Colony Street'),
-    ('Road', 'Road')
+    ('Road', 'Road'),
+    ('Other', 'Other'),
 )
 
 user_type_choices = settings.USER_TYPE_CHOICES
@@ -27,7 +28,7 @@ MATERIAL_TYPE_CHOICES = (
 
 
 class Road(models.Model):
-    unique_code = models.CharField(max_length=500, unique=True)
+    unique_code = models.CharField(max_length=500, unique=True, blank=True, null=True)
     road_name = models.CharField()
     ward_number = models.CharField(blank=True, null=True)
     location = models.TextField(blank=True, null=True)
@@ -58,7 +59,7 @@ class InfraWork(models.Model):
     phase = models.CharField(max_length=500)
     description = models.TextField()
     start_date = models.DateField()
-    end_date = models.DateField()
+    end_date = models.DateField(null=True,blank=True)
     progress_percent = models.IntegerField()
     cost = models.DecimalField(max_digits=1000, decimal_places=2)
     contractor = models.ForeignKey(Contractor, on_delete=models.SET_NULL, null=True)

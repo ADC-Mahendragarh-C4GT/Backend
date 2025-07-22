@@ -14,13 +14,40 @@ import string
 class RoadViewSet(viewsets.ModelViewSet):
     queryset = Road.objects.all()
     serializer_class = RoadSerializer
-    authentication_classes = []
     permission_classes = [AllowAny]
+
+    def perform_create(self, serializer):
+        validated_data = serializer.validated_data
+        instance = Road(**validated_data)  # construct an unsaved instance
+
+        all_characters = (
+            string.ascii_lowercase +
+            string.ascii_uppercase +
+            string.digits
+        )
+
+        flag = True
+        while flag:
+            specialCharactor = random.choice(all_characters)
+            unique_code = (
+                instance.state[0] +
+                instance.district[0] +
+                instance.area_name[0] +
+                str(instance.length_km).split('.')[0] +
+                specialCharactor
+            )
+            if not Road.objects.filter(unique_code=unique_code).exists():
+                flag = False
+
+        instance.unique_code = unique_code
+        instance.save()
+
     
 
 class ContractorViewSet(viewsets.ModelViewSet):
     queryset = Contractor.objects.all()
     serializer_class = ContractorSerializer
+    permission_classes=[IsAuthenticated]
 
 class InfraWorkViewSet(viewsets.ModelViewSet):
     queryset = InfraWork.objects.all()

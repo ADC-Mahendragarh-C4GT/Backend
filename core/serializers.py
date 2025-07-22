@@ -6,6 +6,8 @@ class RoadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Road
         fields = '__all__'
+        read_only_fields = ['unique_code']
+        
 
 class ContractorSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,13 +15,14 @@ class ContractorSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 class InfraWorkSerializer(serializers.ModelSerializer):
-    road = RoadSerializer()
-    contractor = ContractorSerializer()
+    road = serializers.PrimaryKeyRelatedField(queryset=Road.objects.all())
+    contractor = serializers.PrimaryKeyRelatedField(queryset=Contractor.objects.all())
 
     class Meta:
         model = InfraWork
         fields = '__all__'
 
+    
 class UpdateSerializer(serializers.ModelSerializer):
     work = InfraWorkSerializer()
 
