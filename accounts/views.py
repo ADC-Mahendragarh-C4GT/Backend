@@ -7,6 +7,8 @@ from django.contrib.auth import logout
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from rest_framework.permissions import AllowAny
+from rest_framework_simplejwt.tokens import RefreshToken
+
 
 
 class RegisterView(APIView):
@@ -21,7 +23,6 @@ class RegisterView(APIView):
             return Response({'message': 'User registered successfully','status': True, "data" : serializer.data}, status=status.HTTP_201_CREATED)
         return Response({'message': 'User registration failed','status': False, 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
 
-from rest_framework_simplejwt.tokens import RefreshToken
 
 class LoginView(APIView):
     authentication_classes = []
@@ -32,7 +33,11 @@ class LoginView(APIView):
         email = data.get('email')
         password = data.get('password')
         user_type = data.get('user_type')
+        print("Email:------------------------- ", email)
+        print("Password:------------------------- ", password)      
+        print("User Type:------------------------- ", user_type)
         user = CustomUser.objects.filter(email=email, user_type=user_type).first()
+        print("User:------------------------- ", user)
         if user and user.check_password(password):
             refresh = RefreshToken.for_user(user)
             return Response({
