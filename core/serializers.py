@@ -57,7 +57,6 @@ class InfraWorkSerializer(serializers.ModelSerializer):
 
     
 class UpdateSerializer(serializers.ModelSerializer):
-    work = InfraWorkSerializer()
 
     class Meta:
         model = Update

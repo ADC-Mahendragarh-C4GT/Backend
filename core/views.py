@@ -78,6 +78,22 @@ class InfraWorkViewSet(viewsets.ModelViewSet):
 class UpdateViewSet(viewsets.ModelViewSet):
     queryset = Update.objects.all().order_by('-update_date')
     serializer_class = UpdateSerializer
+    permission_classes = [IsAuthenticated]
+    def perform_create(self, serializer):
+        # extract validated data
+        work_id = self.request.data.get('work')
+        if not work_id:
+            raise serializers.ValidationError({"work": "This field is required."})
+
+        try:
+            work = InfraWork.objects.all().order_by('-start_date')
+            work_instance = work.filter(id=work_id).first()
+            print("Work Instance:-----------------", work_instance)
+        except InfraWork.DoesNotExist:
+            raise serializers.ValidationError({"work": f"No InfraWork found with id {work_id}"})
+
+        serializer.save(work=work_instance)
+
 
 
 from rest_framework import generics
@@ -86,6 +102,7 @@ class UpdateListView(generics.ListAPIView):
     queryset = InfraWork.objects.all().order_by('-start_date')
     serializer_class = InfraWorkSerializer
 
+    
 
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializer
