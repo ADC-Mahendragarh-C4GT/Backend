@@ -61,6 +61,20 @@ class InfraWorkViewSet(viewsets.ModelViewSet):
         serializer = UpdateSerializer(updates, many=True)
         return Response(serializer.data)
 
+    # def perform_create(self, serializer):
+    #     print("InfraWork Serializer    -------------------:------------------", serializer.validated_data)
+    #     road_data = serializer.validated_data['road']
+    #     contractor_data = serializer.validated_data['contractor']
+    #     print("Road Data:-----------------", road_data)
+    #     print("Contractor Data:-----------------", contractor_data)
+    #     roads = Road.objects.all()
+    #     road = roads.filter(unique_code=road_data['unique_code']).first()
+    #     contractors = Contractor.objects.all()
+    #     contractor = contractors.filter(contractor_name=contractor_data['contractor_name']).first()
+    #     print("Road Data:-----------------", road)
+    #     print("Contractor Data:-----------------", contractor)
+    #     serializer.save(road=road, contractor=contractor)
+
 class UpdateViewSet(viewsets.ModelViewSet):
     queryset = Update.objects.all().order_by('-update_date')
     serializer_class = UpdateSerializer
