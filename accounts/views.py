@@ -64,12 +64,16 @@ class LoginView(APIView):
 
 class ProfileView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-    authentication_classes = []
 
     def get(self, request):
+        if not request.user or not request.user.is_authenticated:
+            return Response({
+                "detail": "You are not authenticated."
+            }, status=status.HTTP_401_UNAUTHORIZED)
+
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
-
+    
 class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
     authentication_classes = []
@@ -88,3 +92,38 @@ class UserTypeListView(APIView):
             for value, label in CustomUser.USER_TYPE_CHOICES
         ]
         return Response(choices)
+    
+
+class UpdateUserView(APIView):
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def patch(self, request, user_id):
+        print("Request Data:-------------------- ", request.data)
+        print("User ID:-------------------- ", user_id)
+        current_user = request.user
+        if current_user.id == user_id:
+            return Response({
+                "message": "You can't change your own details. Please contact another JE to update your profile.",
+                "status": False
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            user = CustomUser.objects.get(pk=user_id)
+        except CustomUser.DoesNotExist:
+            return Response({"message": "User not found", "status": False}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = UserUpdateSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "User updated successfully", "status": True, "data": serializer.data})
+        return Response({"message": "Update failed", "status": False, "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UsersView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        users = CustomUser.objects.all()
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data)
