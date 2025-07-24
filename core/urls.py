@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import *
 
 router = DefaultRouter()
-router.register('roads', RoadViewSet)
+router.register(r'roads', RoadViewSet)
 router.register('contractors', ContractorViewSet)
 router.register(r'infra-works', InfraWorkViewSet)
 router.register('updates', UpdateViewSet)

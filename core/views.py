@@ -11,20 +11,24 @@ import csv
 import random
 import string
 
-class RoadViewSet(viewsets.ModelViewSet):
-    queryset = Road.objects.all()
-    serializer_class = RoadSerializer
-    permission_classes = [AllowAny]
 
-    def perform_create(self, serializer):
-        validated_data = serializer.validated_data
-        instance = Road(**validated_data)  # construct an unsaved instance
-
-        all_characters = (
+all_characters = (
             string.ascii_lowercase +
             string.ascii_uppercase +
             string.digits
         )
+
+
+class RoadViewSet(viewsets.ModelViewSet):
+    queryset = Road.objects.all()
+    serializer_class = RoadSerializer
+    permission_classes = [AllowAny]
+    print("PATCH method called")
+
+
+    def perform_create(self, serializer):
+        validated_data = serializer.validated_data
+        instance = Road(**validated_data)  
 
         flag = True
         while flag:
@@ -41,6 +45,51 @@ class RoadViewSet(viewsets.ModelViewSet):
 
         instance.unique_code = unique_code
         instance.save()
+
+    def partial_update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        old_data = {
+            "state": instance.state,
+            "district": instance.district,
+            "area_name": instance.area_name,
+            "length_km": instance.length_km
+        }
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        updated_instance = serializer.save()
+
+        has_changed = (
+            old_data["state"] != updated_instance.state or
+            old_data["district"] != updated_instance.district or
+            old_data["area_name"] != updated_instance.area_name or
+            old_data["length_km"] != updated_instance.length_km
+        )
+
+        if has_changed:
+            flag = True
+            while flag:
+                specialCharactor = random.choice(all_characters)
+                unique_code = (
+                    updated_instance.state[0] +
+                    updated_instance.district[0] +
+                    updated_instance.area_name[0] +
+                    str(updated_instance.length_km).split('.')[0] +
+                    specialCharactor
+                )
+                if not Road.objects.filter(unique_code=unique_code).exclude(pk=updated_instance.pk).exists():
+                    flag = False
+            
+            print("Unique Code:-----------------", unique_code)
+            updated_instance.unique_code = unique_code
+            print("Updated Unique Code:-----------------", updated_instance.unique_code)
+            updated_instance.save()
+
+        return Response(self.get_serializer(updated_instance).data)
+
+    
 
     
 
