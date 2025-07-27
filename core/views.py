@@ -123,25 +123,35 @@ class InfraWorkViewSet(viewsets.ModelViewSet):
     #     print("Road Data:-----------------", road)
     #     print("Contractor Data:-----------------", contractor)
     #     serializer.save(road=road, contractor=contractor)
+from django.utils.timezone import now  # Ensure timezone-aware datetime
 
 class UpdateViewSet(viewsets.ModelViewSet):
     queryset = Update.objects.all().order_by('-update_date')
     serializer_class = UpdateSerializer
     permission_classes = [IsAuthenticated]
+
     def perform_create(self, serializer):
-        # extract validated data
         work_id = self.request.data.get('work')
+        progress = self.request.data.get('progress_percent')
+
         if not work_id:
             raise serializers.ValidationError({"work": "This field is required."})
 
         try:
-            work = InfraWork.objects.all().order_by('-start_date')
-            work_instance = work.filter(id=work_id).first()
-            print("Work Instance:-----------------", work_instance)
+            work_instance = InfraWork.objects.filter(id=work_id).first()
+            if not work_instance:
+                raise serializers.ValidationError({"work": f"No InfraWork found with id {work_id}"})
         except InfraWork.DoesNotExist:
             raise serializers.ValidationError({"work": f"No InfraWork found with id {work_id}"})
 
-        serializer.save(work=work_instance)
+        update_instance = serializer.save(work=work_instance)
+
+        if str(progress) == "100":
+            work_instance.completedOrpending = 'Completed'
+            work_instance.progress_percent = 100
+            work_instance.end_date = update_instance.update_date or now()
+            work_instance.save()
+
 
 
 
