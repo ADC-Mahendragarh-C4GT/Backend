@@ -89,3 +89,12 @@ class OtherDepartmentRequestSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     
+
+class InfraWorksByRoadSerializer(serializers.ModelSerializer):
+    road = RoadSerializer()
+    contractor = ContractorSerializer()
+
+    class Meta:
+        model = InfraWork
+        fields = '__all__'
+        read_only_fields = ['road', 'contractor']

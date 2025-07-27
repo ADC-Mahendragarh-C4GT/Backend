@@ -66,7 +66,7 @@ class InfraWork(models.Model):
     completedOrpending = models.CharField(max_length=20, choices=[('Completed', 'Completed'), ('Pending', 'Pending')], default='Pending')
     defect_liability_period = models.IntegerField(help_text="Defect Liability Period in months", default=0, null=True, blank=True)
     def __str__(self):
-        return f"{self.road.road_name} - {self.phase} ({self.start_date} to {self.end_date})"
+        return f"{self.road.unique_code} - {self.road.road_name} - {self.phase} ({self.start_date} to {self.end_date})"
 
 class Update(models.Model):
     work = models.ForeignKey(InfraWork, on_delete=models.CASCADE)

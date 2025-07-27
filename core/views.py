@@ -236,3 +236,20 @@ class UploadCSVView(APIView):
 
         except Exception as e:
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class InfraWorksByRoadViewSet(viewsets.ModelViewSet):
+    serializer_class = InfraWorksByRoadSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        road_id = self.request.query_params.get('road_id')
+        print("Road ID:-----------------", road_id)
+        if road_id:
+            return InfraWork.objects.filter(road__id=road_id).order_by('-start_date')
+        return InfraWork.objects.all().order_by('-start_date')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
