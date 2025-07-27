@@ -4,7 +4,7 @@ from .views import *
 
 router = DefaultRouter()
 router.register(r'roads', RoadViewSet)
-router.register('contractors', ContractorViewSet)
+router.register(r'contractors', ContractorViewSet)
 router.register(r'infra-works', InfraWorkViewSet)
 router.register('updates', UpdateViewSet)
 router.register(r'comments', CommentsViewSet, basename='comment')
