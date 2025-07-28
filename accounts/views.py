@@ -76,7 +76,6 @@ class ProfileView(APIView):
     
 class LogoutView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-    authentication_classes = []
 
     def post(self, request):
         logout(request)
