@@ -8,4 +8,4 @@ class CustomUser(AbstractUser):
     phone_number = models.CharField(max_length=15, blank=True, null=True)
 
     def __str__(self):
-        return f"{self.username} ({self.get_user_type_display()})"
+        return f"{self.first_name} {self.last_name}({self.get_user_type_display()})"

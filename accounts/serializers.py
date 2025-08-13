@@ -30,6 +30,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             user_type=validated_data.get('user_type', 'other'),
             phone_number=validated_data.get('phone_number')
         )
+    
  
 
 class UserUpdateSerializer(serializers.ModelSerializer):
