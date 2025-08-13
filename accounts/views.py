@@ -13,7 +13,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 class RegisterView(APIView):
     authentication_classes = []
-    permission_classes = [AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
         data = request.data

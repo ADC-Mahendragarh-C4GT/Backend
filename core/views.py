@@ -34,9 +34,9 @@ class RoadViewSet(viewsets.ModelViewSet):
         while flag:
             specialCharactor = random.choice(all_characters)
             unique_code = (
-                instance.state[0] +
-                instance.district[0] +
-                instance.area_name[0] +
+                instance.state[0].upper() +
+                instance.district[0].upper() +
+                instance.area_name[0].upper() +
                 str(instance.length_km).split('.')[0] +
                 specialCharactor
             )
@@ -73,9 +73,9 @@ class RoadViewSet(viewsets.ModelViewSet):
             while flag:
                 specialCharactor = random.choice(all_characters)
                 unique_code = (
-                    updated_instance.state[0] +
-                    updated_instance.district[0] +
-                    updated_instance.area_name[0] +
+                    updated_instance.state[0].upper() +
+                    updated_instance.district[0].upper() +
+                    updated_instance.area_name[0].upper() +
                     str(updated_instance.length_km).split('.')[0] +
                     specialCharactor
                 )

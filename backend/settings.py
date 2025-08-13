@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     'core',
     'rest_framework',
     'accounts',
+    'audit',
 ]
 
 MIDDLEWARE = [
