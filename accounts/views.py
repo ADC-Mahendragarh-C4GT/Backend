@@ -147,3 +147,21 @@ class GetLoginUserView(APIView):
         serializer = UserSerializer(login_user)
         return Response(serializer.data)
 
+
+class DeleteUserView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, user_id):
+        try:
+            user = CustomUser.objects.get(pk=user_id)
+        except CustomUser.DoesNotExist:
+            return Response(
+                {"message": "User not found", "status": False},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        user.delete()
+        return Response(
+            {"message": "User deleted successfully", "status": True},
+            status=status.HTTP_200_OK
+        )

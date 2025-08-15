@@ -27,7 +27,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         performed_by_user = None
 
         print("---------login_user_data-------------------", login_user_data)
-        # print("---------login_user_data[id]-------------------", login_user_data["id"])
 
         if login_user_data and "id" in login_user_data:
             try:
