@@ -1,6 +1,9 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.conf import settings
+import uuid
+
+
 class CustomUser(AbstractUser):
     USER_TYPE_CHOICES = settings.USER_TYPE_CHOICES
 

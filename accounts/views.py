@@ -14,19 +14,14 @@ from audit.models import UserAuditLog
 
 class RegisterView(APIView):
     authentication_classes = []
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [AllowAny]
 
     def post(self, request):
         data = request.data
         serializer = RegisterSerializer(data=data)
         if serializer.is_valid():
             user = serializer.save()
-            UserAuditLog.objects.create(
-                action="CREATE",
-                performed_by=request.login_user if request.user.is_authenticated else None,
-                old_details_of_affected_user=None,
-                new_details_of_affected_user=user
-            )
+            
 
             return Response({'message': 'User registered successfully','status': True, "data" : serializer.data}, status=status.HTTP_201_CREATED)
         return Response({'message': 'User registration failed','status': False, 'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
@@ -54,6 +49,7 @@ class LoginView(APIView):
                 'user_id': user.id,
                 'username': user.username,
                 'email': user.email,
+                'id':user.id,
                 'user_type': user.user_type,
                 'user_username':user.username,
                 'userFirstName': user.first_name,
@@ -134,3 +130,20 @@ class UsersView(APIView):
         users = CustomUser.objects.all()
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
+    
+
+class GetLoginUserView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user_id = request.query_params.get("id") 
+        if not user_id:
+            return Response({"error": "id is required"}, status=400)
+
+        login_user = CustomUser.objects.filter(id=user_id).first()
+        if not login_user:
+            return Response({"error": "User not found"}, status=404)
+
+        serializer = UserSerializer(login_user)
+        return Response(serializer.data)
+
