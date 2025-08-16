@@ -102,8 +102,6 @@ class UpdateUserView(APIView):
     authentication_classes = []
 
     def patch(self, request, user_id):
-        print("Request Data:-------------------- ", request.data)
-        print("User ID:-------------------- ", user_id)
         current_user = request.user
         if current_user.id == user_id:
             return Response({
@@ -117,10 +115,42 @@ class UpdateUserView(APIView):
             return Response({"message": "User not found", "status": False}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = UserUpdateSerializer(user, data=request.data, partial=True)
-        if serializer.is_valid():
-            serializer.save()
-            return Response({"message": "User updated successfully", "status": True, "data": serializer.data})
-        return Response({"message": "Update failed", "status": False, "errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            return Response({
+                "message": "Update failed",
+                "status": False,
+                "errors": serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        validated_data = serializer.validated_data
+
+        login_user_data = request.data.get("login_user", None)
+        performed_by_user = None
+        if login_user_data and isinstance(login_user_data, dict) and "id" in login_user_data:
+            try:
+                performed_by_user = CustomUser.objects.get(id=login_user_data["id"])
+            except CustomUser.DoesNotExist:
+                performed_by_user = None
+
+        old_details_snapshot = CustomUser.objects.filter(pk=user.pk).first()
+
+        for attr, value in validated_data.items():
+            setattr(user, attr, value)
+        user.save()
+        
+        UserAuditLog.objects.create(
+            action="UPDATE",
+            performed_by=performed_by_user,
+            old_details_of_affected_user=old_details_snapshot,
+            new_details_of_affected_user=user
+        )
+
+        return Response({
+            "message": "User updated successfully",
+            "status": True,
+            "data": UserUpdateSerializer(user).data
+        })
+
 
 
 class UsersView(APIView):

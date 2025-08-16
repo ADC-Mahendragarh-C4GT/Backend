@@ -52,6 +52,8 @@ class RegisterSerializer(serializers.ModelSerializer):
             new_details_of_affected_user=user
         )
         return user
+    
+    
  
 
 class UserUpdateSerializer(serializers.ModelSerializer):
@@ -59,3 +61,4 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         model = CustomUser
         fields = '__all__'
 
+    
