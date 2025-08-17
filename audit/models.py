@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from accounts.models import CustomUser
+import json
 
 class UserAuditLog(models.Model):
     action = models.CharField(max_length=20, choices=[
@@ -9,16 +10,31 @@ class UserAuditLog(models.Model):
         ("DELETE", "Delete"),
     ])
     performed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='performed_by')
-    old_details_of_affected_user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='old_details')
-    new_details_of_affected_user = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='new_details')
+    old_details_of_affected_user = models.TextField()
+    new_details_of_affected_user = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
+    def set_old_details(self, data: dict):
+        self.old_details_of_affected_user = json.dumps(data)
+
+    def get_old_details(self) -> dict:
+        return json.loads(self.old_details_of_affected_user) if self.old_details_of_affected_user else {}
+
+    def set_new_details(self, data: dict):
+        self.new_details_of_affected_user = json.dumps(data)
+
+    def get_new_details(self) -> dict:
+        return json.loads(self.new_details_of_affected_user) if self.new_details_of_affected_user else {}
+
     def __str__(self):
-        old_user = self.old_details_of_affected_user
+        old_details = self.get_old_details()
+        new_details = self.get_new_details()
         performed_by_user = self.performed_by
 
-        old_user_name = f"{old_user.first_name} {old_user.last_name}" if old_user else "Unknown User"
+        old_user_name = f"{old_details.get('first_name', '')} {old_details.get('last_name', '')}".strip()
+        new_user_name = f"{new_details.get('first_name', '')} {new_details.get('last_name', '')}".strip()
+
+        affected_user_name = old_user_name or new_user_name or "Unknown User"
         performed_by_name = f"{performed_by_user.first_name} {performed_by_user.last_name}" if performed_by_user else "Administrator"
 
-        return f"{self.action} on {old_user_name} by {performed_by_name} at {self.timestamp}"
-
+        return f"{self.action} User details by {performed_by_name} at {self.timestamp}"

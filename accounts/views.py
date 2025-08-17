@@ -132,17 +132,29 @@ class UpdateUserView(APIView):
             except CustomUser.DoesNotExist:
                 performed_by_user = None
 
-        old_details_snapshot = CustomUser.objects.filter(pk=user.pk).first()
+        old_details_snapshot = CustomUser.objects.filter(pk=user.pk).values().first()
 
         for attr, value in validated_data.items():
             setattr(user, attr, value)
         user.save()
-        
+
+        new_details_snapshot = request.data 
+
+        changed_old_details = {}
+        changed_new_details = {}
+        for field, new_value in new_details_snapshot.items():
+            if field == "login_user":  # skip login_user field
+                continue
+            old_value = old_details_snapshot.get(field)
+            if old_value != new_value:
+                changed_old_details[field] = old_value
+                changed_new_details[field] = new_value
+
         UserAuditLog.objects.create(
             action="UPDATE",
             performed_by=performed_by_user,
-            old_details_of_affected_user=old_details_snapshot,
-            new_details_of_affected_user=user
+            old_details_of_affected_user=json.dumps(changed_old_details),
+            new_details_of_affected_user=json.dumps(changed_new_details)
         )
 
         return Response({
