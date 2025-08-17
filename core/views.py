@@ -10,6 +10,7 @@ from rest_framework.views import APIView
 import csv
 import random
 import string
+from audit.models import *
 
 
 all_characters = (
@@ -88,6 +89,56 @@ class RoadViewSet(viewsets.ModelViewSet):
             updated_instance.save()
 
         return Response(self.get_serializer(updated_instance).data)
+    
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        print("------------instance -------------", instance)
+
+        login_user_data = request.data.get("login_user", None)
+        performed_by_user = None
+        if login_user_data and isinstance(login_user_data, dict) and "id" in login_user_data:
+            try:
+                performed_by_user = CustomUser.objects.get(id=login_user_data["id"])
+            except CustomUser.DoesNotExist:
+                performed_by_user = None
+
+        
+        print('----------------instanceID', instance.unique_code)
+        
+        changed_old_details = {}
+        changed_new_details = {}
+        changed_old_details["id"] = instance.id
+        changed_old_details["unique_code"] = instance.unique_code
+        changed_old_details["road_name"] = instance.road_name
+        changed_old_details["ward_number"] = instance.ward_number
+        changed_old_details["location"] = instance.location
+        changed_old_details["length_km"] = instance.length_km
+        changed_old_details["width_m"] = instance.width_m
+        changed_old_details["road_type"] = instance.road_type
+        changed_old_details["material_type"] = instance.material_type
+        changed_old_details["road_category"] = instance.road_category
+        changed_old_details["area_name"] = instance.area_name
+        changed_old_details["state"] = instance.state
+        changed_old_details["district"] = instance.district
+
+        changed_new_details["id"] = instance.id
+        
+        RoadAuditLog.objects.create(
+            action="DELETE",
+            performed_by=performed_by_user,
+            old_details_of_affected_road=json.dumps(str(changed_old_details)),
+            new_details_of_affected_road=json.dumps(str(changed_new_details))
+        )
+
+
+        self.perform_destroy(instance)
+
+        return Response(
+            {"detail": f"Road '{instance.road_name}' deleted successfully"},
+            status=status.HTTP_204_NO_CONTENT
+        )
+
 
     
 

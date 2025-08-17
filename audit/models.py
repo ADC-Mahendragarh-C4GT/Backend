@@ -9,7 +9,7 @@ class UserAuditLog(models.Model):
         ("UPDATE", "Update"),
         ("DELETE", "Delete"),
     ])
-    performed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='performed_by')
+    performed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='user_audit_logs')
     old_details_of_affected_user = models.TextField()
     new_details_of_affected_user = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
@@ -38,3 +38,20 @@ class UserAuditLog(models.Model):
         performed_by_name = f"{performed_by_user.first_name} {performed_by_user.last_name}" if performed_by_user else "Administrator"
 
         return f"{self.action} User details by {performed_by_name} at {self.timestamp}"
+
+
+class RoadAuditLog(models.Model):
+    action = models.CharField(max_length=20, choices=[
+        ("CREATE", "Create"),
+        ("UPDATE", "Update"),
+        ("DELETE", "Delete"),
+    ])
+    performed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='road_audit_logs')
+    timestamp = models.DateTimeField(auto_now_add=True)
+    old_details_of_affected_road = models.TextField()
+    new_details_of_affected_road = models.TextField()
+    
+    def __str__(self):
+        performed_by_user = self.performed_by
+        performed_by_name = f"{performed_by_user.first_name} {performed_by_user.last_name}" if performed_by_user else "Administrator"
+        return f"{self.action} Road details by {performed_by_name} at {self.timestamp}"
