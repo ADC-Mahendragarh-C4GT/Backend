@@ -201,6 +201,27 @@ class DeleteUserView(APIView):
                 {"message": "User not found", "status": False},
                 status=status.HTTP_404_NOT_FOUND
             )
+        
+        login_user_data = request.data.get("login_user", None)
+        performed_by_user = None
+        if login_user_data and isinstance(login_user_data, dict) and "id" in login_user_data:
+            try:
+                performed_by_user = CustomUser.objects.get(id=login_user_data["id"])
+            except CustomUser.DoesNotExist:
+                performed_by_user = None
+
+        
+        changed_old_details = {}
+        changed_new_details = {}
+        changed_old_details["id"] = user.id
+        changed_new_details["id"] = user.id
+        
+        UserAuditLog.objects.create(
+            action="DELETE",
+            performed_by=performed_by_user,
+            old_details_of_affected_user=json.dumps(changed_old_details),
+            new_details_of_affected_user=json.dumps(changed_new_details)
+        )
 
         user.delete()
         return Response(
