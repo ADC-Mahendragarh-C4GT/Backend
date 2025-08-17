@@ -47,6 +47,44 @@ class RoadViewSet(viewsets.ModelViewSet):
         instance.unique_code = unique_code
         instance.save()
 
+        request_data = self.request.data
+        login_user_data = request_data.get("login_user", None)
+        performed_by_user = None
+        if login_user_data and isinstance(login_user_data, dict) and "id" in login_user_data:
+            try:
+                performed_by_user = CustomUser.objects.get(id=login_user_data["id"])
+            except CustomUser.DoesNotExist:
+                performed_by_user = None
+
+        old_details_snapshot = {"id": instance.id}
+
+        new_details_snapshot = {
+            "id": instance.id,
+            "unique_code": instance.unique_code,
+            "road_name": instance.road_name,
+            "ward_number": instance.ward_number,
+            "location": instance.location,
+            "length_km": instance.length_km,
+            "width_m": instance.width_m,
+            "road_type": instance.road_type,
+            "material_type": instance.material_type,
+            "road_category": instance.road_category,
+            "area_name": instance.area_name,
+            "state": instance.state,
+            "district": instance.district,
+        }
+
+
+        RoadAuditLog.objects.create(
+            action="CREATE",
+            performed_by=performed_by_user,
+            old_details_of_affected_road=json.dumps(str(old_details_snapshot)),  # no old details on CREATE
+            new_details_of_affected_road=json.dumps(str(new_details_snapshot)),
+        )
+
+        return instance
+
+
     def partial_update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
@@ -278,7 +316,7 @@ class UploadCSVView(APIView):
                     if not Road.objects.filter(unique_code=unique_code).exists():
                         flag = False
                        
-                Road.objects.create(
+                instance = Road.objects.create(
                     road_name=row['road_name'],
                     ward_number=row['ward_number'],
                     location=row['location'],
@@ -292,6 +330,43 @@ class UploadCSVView(APIView):
                     state = row['state'],
                     unique_code = unique_code,
                 )
+
+                login_user_id = request.data.get("login_user")
+                performed_by_user = None
+                print("---login_user_id-------------------",login_user_id)
+                if login_user_id:
+                    try:
+                        performed_by_user = CustomUser.objects.get(id=login_user_id)
+                    except CustomUser.DoesNotExist:
+                        performed_by_user = None
+
+                old_details_snapshot = {"id": instance.id}
+
+                new_details_snapshot = {
+                    "id": instance.id,
+                    "unique_code": instance.unique_code,
+                    "road_name": instance.road_name,
+                    "ward_number": instance.ward_number,
+                    "location": instance.location,
+                    "length_km": instance.length_km,
+                    "width_m": instance.width_m,
+                    "road_type": instance.road_type,
+                    "material_type": instance.material_type,
+                    "road_category": instance.road_category,
+                    "area_name": instance.area_name,
+                    "state": instance.state,
+                    "district": instance.district,
+                }
+
+
+                RoadAuditLog.objects.create(
+                    action="CREATE",
+                    performed_by=performed_by_user,
+                    old_details_of_affected_road=json.dumps(str(old_details_snapshot)),  # no old details on CREATE
+                    new_details_of_affected_road=json.dumps(str(new_details_snapshot)),
+                )
+
+
 
             return Response({"message": "CSV uploaded & saved successfully!"}, status=status.HTTP_201_CREATED)
 
