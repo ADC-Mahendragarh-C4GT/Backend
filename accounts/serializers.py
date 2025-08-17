@@ -45,11 +45,22 @@ class RegisterSerializer(serializers.ModelSerializer):
         )
         print("------------performed_by_user---------", performed_by_user)
 
+        changed_old_details = {}
+        changed_new_details = {}
+        changed_old_details["id"] = user.id
+        changed_new_details["id"] = user.id
+        changed_new_details["username"] = user.username
+        changed_new_details["email"] = user.email
+        changed_new_details["first_name"] = user.first_name
+        changed_new_details["last_name"] = user.last_name
+        changed_new_details["user_type"] = user.user_type
+        changed_new_details["phone_number"] = user.phone_number
+
         audit = UserAuditLog.objects.create(
             action="CREATE",
             performed_by=performed_by_user,
-            old_details_of_affected_user=None,
-            new_details_of_affected_user=user
+            old_details_of_affected_user=json.dumps(changed_old_details),
+            new_details_of_affected_user=json.dumps(changed_new_details)
         )
         return user
     
