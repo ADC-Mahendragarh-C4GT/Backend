@@ -273,7 +273,7 @@ class UploadCSVView(APIView):
                 flag = True
                 while flag:
                     specialCharactor = random.choice(all_characters)
-                    unique_code =( row['state'][0] + row['district'][0] + row['area_name'][0] + row['length_km'].split('.')[0] + specialCharactor)
+                    unique_code =( row['state'][0].upper() + row['district'][0].upper() + row['area_name'][0].upper() + row['length_km'].split('.')[0] + specialCharactor)
                     # Check if this code already exists
                     if not Road.objects.filter(unique_code=unique_code).exists():
                         flag = False
