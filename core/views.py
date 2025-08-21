@@ -14,7 +14,6 @@ from audit.models import *
 
 
 all_characters = (
-            string.ascii_lowercase +
             string.ascii_uppercase +
             string.digits
         )
@@ -85,6 +84,49 @@ class RoadViewSet(viewsets.ModelViewSet):
         return instance
 
 
+    # def partial_update(self, request, *args, **kwargs):
+    #     partial = kwargs.pop('partial', False)
+    #     instance = self.get_object()
+
+    #     old_data = {
+    #         "state": instance.state,
+    #         "district": instance.district,
+    #         "area_name": instance.area_name,
+    #         "length_km": instance.length_km
+    #     }
+
+    #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
+    #     serializer.is_valid(raise_exception=True)
+    #     updated_instance = serializer.save()
+
+    #     has_changed = (
+    #         old_data["state"] != updated_instance.state or
+    #         old_data["district"] != updated_instance.district or
+    #         old_data["area_name"] != updated_instance.area_name or
+    #         old_data["length_km"] != updated_instance.length_km
+    #     )
+
+    #     if has_changed:
+    #         flag = True
+    #         while flag:
+    #             specialCharactor = random.choice(all_characters)
+    #             unique_code = (
+    #                 updated_instance.state[0].upper() +
+    #                 updated_instance.district[0].upper() +
+    #                 updated_instance.area_name[0].upper() +
+    #                 str(updated_instance.length_km).split('.')[0] +
+    #                 specialCharactor
+    #             )
+    #             if not Road.objects.filter(unique_code=unique_code).exclude(pk=updated_instance.pk).exists():
+    #                 flag = False
+            
+    #         print("Unique Code:-----------------", unique_code)
+    #         updated_instance.unique_code = unique_code
+    #         print("Updated Unique Code:-----------------", updated_instance.unique_code)
+    #         updated_instance.save()
+
+    #     return Response(self.get_serializer(updated_instance).data)
+    
     def partial_update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
@@ -93,7 +135,8 @@ class RoadViewSet(viewsets.ModelViewSet):
             "state": instance.state,
             "district": instance.district,
             "area_name": instance.area_name,
-            "length_km": instance.length_km
+            "length_km": instance.length_km,
+            "unique_code": instance.unique_code
         }
 
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
@@ -120,14 +163,46 @@ class RoadViewSet(viewsets.ModelViewSet):
                 )
                 if not Road.objects.filter(unique_code=unique_code).exclude(pk=updated_instance.pk).exists():
                     flag = False
-            
-            print("Unique Code:-----------------", unique_code)
+
             updated_instance.unique_code = unique_code
-            print("Updated Unique Code:-----------------", updated_instance.unique_code)
             updated_instance.save()
 
+        new_data = {
+            "state": updated_instance.state,
+            "district": updated_instance.district,
+            "area_name": updated_instance.area_name,
+            "length_km": updated_instance.length_km,
+            "unique_code": updated_instance.unique_code
+        }
+
+        login_user_data = request.data.get("login_user", None)
+        performed_by_user = None
+        if login_user_data and isinstance(login_user_data, dict) and "id" in login_user_data:
+            try:
+                performed_by_user = CustomUser.objects.get(id=login_user_data["id"])
+            except CustomUser.DoesNotExist:
+                performed_by_user = None
+
+        changed_old_details = {}
+        changed_new_details = {}
+        for field in new_data.keys():
+            old_value = old_data.get(field)
+            new_value = new_data.get(field)
+            if old_value != new_value:
+                changed_old_details[field] = old_value
+                changed_new_details[field] = new_value
+
+        if changed_old_details or changed_new_details:
+            RoadAuditLog.objects.create(
+                action="UPDATE",
+                performed_by=performed_by_user,
+                old_details_of_affected_road=json.dumps(changed_old_details, default=str),
+                new_details_of_affected_road=json.dumps(changed_new_details, default=str)
+            )
+
         return Response(self.get_serializer(updated_instance).data)
-    
+
+
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
 
