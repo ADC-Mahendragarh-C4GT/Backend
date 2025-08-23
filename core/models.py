@@ -90,7 +90,6 @@ def update_infra_work_progress(sender, instance, created, **kwargs):
         if(instance.progress_percent == 100):
             instance.work.completedOrpending = 'Completed' 
         infra_work = instance.work
-        # set InfraWork.progress_percent = latest update's progress_percent
         infra_work.progress_percent = instance.progress_percent
         infra_work.save()
 
@@ -100,6 +99,8 @@ class Comments(models.Model):
     comment_text = models.TextField()
     commenter = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     comment_date = models.DateTimeField(auto_now_add=True)
+    deleteFlag = models.BooleanField(default=False, blank=True, null=True)
+    deleteBy = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True, related_name='deleted_comments')
 
     def __str__(self):
         return f"{self.commenter.first_name} {self.commenter.last_name} {self.commenter.user_type} on {self.update.update_date}: {self.comment_text[:50]}..."

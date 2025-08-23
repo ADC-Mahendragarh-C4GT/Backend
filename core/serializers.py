@@ -1,3 +1,4 @@
+from urllib import request
 from rest_framework import serializers
 from .models import *
 from accounts.serializers import UserSerializer
@@ -129,24 +130,48 @@ class UpdateSerializer(serializers.ModelSerializer):
     
 
 class CommentsSerializer(serializers.ModelSerializer):
-    update = UpdateSerializer()
-    infra_work = InfraWorkSerializer()
-    commenter = UserSerializer()
+    
     class Meta:
         model = Comments
         fields = '__all__'
 
-class CommentCreateSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Comments
-        fields = ['infra_work', 'update', 'comment_text']
-
     def create(self, validated_data):
-        user = self.context['request'].user
-        if not user.is_authenticated:
-            raise serializers.ValidationError("Authentication required to comment.")
-        validated_data['commenter'] = user
-        return super().create(validated_data)
+        print("validateddata ---------------", validated_data)
+        request = self.context.get('request')
+        login_user = request.data.get("login_user") if request else None
+        print("request------------------", request.data)
+        performed_by_user = None
+
+        if login_user:
+            try:
+                performed_by_user = CustomUser.objects.get(id=login_user["id"])
+            except CustomUser.DoesNotExist:
+                performed_by_user = None
+
+        instance = Comments.objects.create(**validated_data)
+
+        update = self.initial_data.get('update')
+        infra_work = self.initial_data.get('infra_work')
+
+
+        old_details_snapshot = {"id": instance.id}
+        new_details_snapshot = {
+            "id": instance.id,
+            "infra_work": infra_work,
+            "update": update,
+            "comment_text": instance.comment_text,
+            "commenter": str(login_user["id"]) if login_user else None,
+        }
+
+        CommentAuditLog.objects.create(
+            action="CREATE",
+            performed_by=performed_by_user,
+            old_details_of_affected_comment=json.dumps(old_details_snapshot),
+            new_details_of_affected_comment=json.dumps(new_details_snapshot),
+        )
+
+        return instance
+
 
 
 class OtherDepartmentRequestSerializer(serializers.ModelSerializer):
