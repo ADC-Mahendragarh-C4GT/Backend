@@ -251,6 +251,57 @@ class ContractorViewSet(viewsets.ModelViewSet):
       
 
         return instance
+    
+    def partial_update(self, request, *args, **kwargs):
+        partial = kwargs.pop('partial', False)
+        instance = self.get_object()
+
+        old_data = {
+            "contractor_name": instance.contractor_name,
+            "contact_person": instance.contact_person,
+            "contact_number": instance.contact_number,
+            "email": instance.email,
+            "address": instance.address,
+        }
+
+        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        updated_instance = serializer.save()
+
+        new_data = {
+            "contractor_name": updated_instance.contractor_name,
+            "contact_person": updated_instance.contact_person,
+            "contact_number": updated_instance.contact_number,
+            "email": updated_instance.email,
+            "address": updated_instance.address,
+        }
+
+        login_user_data = request.data.get("login_user", None)
+        performed_by_user = None
+        if login_user_data and "id" in login_user_data:
+            try:
+                performed_by_user = CustomUser.objects.get(id=login_user_data["id"])
+            except CustomUser.DoesNotExist:
+                performed_by_user = None
+
+        changed_old_details = {}
+        changed_new_details = {}
+        for field in new_data.keys():
+            old_value = old_data.get(field)
+            new_value = new_data.get(field)
+            if old_value != new_value:
+                changed_old_details[field] = old_value
+                changed_new_details[field] = new_value
+
+        if changed_old_details or changed_new_details:
+            ContracterAuditLog.objects.create(
+                action="UPDATE",
+                performed_by=performed_by_user,
+                old_details_of_affected_contracter=json.dumps(changed_old_details, default=str),
+                new_details_of_affected_contracter=json.dumps(changed_new_details, default=str)
+            )
+
+        return Response(self.get_serializer(updated_instance).data)
 
 
 class InfraWorkViewSet(viewsets.ModelViewSet):
