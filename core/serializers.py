@@ -126,6 +126,7 @@ class UpdateSerializer(serializers.ModelSerializer):
         )
 
         return instance
+    
 
 class CommentsSerializer(serializers.ModelSerializer):
     update = UpdateSerializer()

@@ -422,7 +422,12 @@ class CommentsViewSet(viewsets.ModelViewSet):
         if self.action in ['create', 'update', 'partial_update']:
             return CommentCreateSerializer
         return CommentsSerializer 
-    
+
+    # def perform_create(self, serializer):
+    #     instance = serializer.save()
+    #     print("Created a new comment:", instance)
+    #     return instance
+
 class OtherDepartmentRequestViewSet(viewsets.ModelViewSet):
     queryset = OtherDepartmentRequest.objects.all()
     serializer_class = OtherDepartmentRequestSerializer
