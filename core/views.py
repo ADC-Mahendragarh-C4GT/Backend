@@ -84,49 +84,6 @@ class RoadViewSet(viewsets.ModelViewSet):
         return instance
 
 
-    # def partial_update(self, request, *args, **kwargs):
-    #     partial = kwargs.pop('partial', False)
-    #     instance = self.get_object()
-
-    #     old_data = {
-    #         "state": instance.state,
-    #         "district": instance.district,
-    #         "area_name": instance.area_name,
-    #         "length_km": instance.length_km
-    #     }
-
-    #     serializer = self.get_serializer(instance, data=request.data, partial=partial)
-    #     serializer.is_valid(raise_exception=True)
-    #     updated_instance = serializer.save()
-
-    #     has_changed = (
-    #         old_data["state"] != updated_instance.state or
-    #         old_data["district"] != updated_instance.district or
-    #         old_data["area_name"] != updated_instance.area_name or
-    #         old_data["length_km"] != updated_instance.length_km
-    #     )
-
-    #     if has_changed:
-    #         flag = True
-    #         while flag:
-    #             specialCharactor = random.choice(all_characters)
-    #             unique_code = (
-    #                 updated_instance.state[0].upper() +
-    #                 updated_instance.district[0].upper() +
-    #                 updated_instance.area_name[0].upper() +
-    #                 str(updated_instance.length_km).split('.')[0] +
-    #                 specialCharactor
-    #             )
-    #             if not Road.objects.filter(unique_code=unique_code).exclude(pk=updated_instance.pk).exists():
-    #                 flag = False
-            
-    #         print("Unique Code:-----------------", unique_code)
-    #         updated_instance.unique_code = unique_code
-    #         print("Updated Unique Code:-----------------", updated_instance.unique_code)
-    #         updated_instance.save()
-
-    #     return Response(self.get_serializer(updated_instance).data)
-    
     def partial_update(self, request, *args, **kwargs):
         partial = kwargs.pop('partial', False)
         instance = self.get_object()
@@ -261,6 +218,40 @@ class ContractorViewSet(viewsets.ModelViewSet):
     queryset = Contractor.objects.all()
     serializer_class = ContractorSerializer
     permission_classes=[IsAuthenticated]
+
+    def perform_create(self, serializer):
+        validated_data = serializer.validated_data
+        instance = Contractor(**validated_data) 
+        
+        instance.save()
+        
+        login_user = self.request.data.get("login_user")
+        if login_user:
+            try:
+                performed_by_user = CustomUser.objects.get(id=login_user["id"])
+            except CustomUser.DoesNotExist:
+                performed_by_user = None
+        
+        old_details_snapshot = {"id": instance.id}
+        new_details_snapshot = {
+            "id": instance.id,
+            "contractor_name": instance.contractor_name,
+            "contact_person": instance.contact_person,
+            "contact_number": instance.contact_number,
+            "email": instance.email,
+            "address": instance.address,
+        }
+
+        ContracterAuditLog.objects.create(
+            action="CREATE",
+            performed_by=performed_by_user,
+            old_details_of_affected_contracter=json.dumps(str(old_details_snapshot)),
+            new_details_of_affected_contracter=json.dumps(str(new_details_snapshot)),
+        )
+      
+
+        return instance
+
 
 class InfraWorkViewSet(viewsets.ModelViewSet):
     queryset = InfraWork.objects.all()

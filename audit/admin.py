@@ -3,3 +3,4 @@ from .models import *
 
 admin.site.register(UserAuditLog)
 admin.site.register(RoadAuditLog)
+admin.site.register(ContracterAuditLog)
