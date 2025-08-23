@@ -15,6 +15,7 @@ class ContractorSerializer(serializers.ModelSerializer):
         model = Contractor
         fields = '__all__'
 
+
 class InfraWorkSerializer(serializers.ModelSerializer):
     class Meta:
         model = InfraWork
@@ -76,12 +77,55 @@ class InfraWorkSerializer(serializers.ModelSerializer):
         return instance
 
 
-    
 class UpdateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Update
         fields = '__all__'
+
+    def create(self, validated_data):
+        workId = self.initial_data.get('work')
+        roadId = self.initial_data.get('road')
+
+        try:
+            road = Road.objects.get(id=roadId)
+            work = InfraWork.objects.filter(id=workId, road=road).first()
+
+        except InfraWork.DoesNotExist:
+            raise serializers.ValidationError({'work': 'InfraWork with this id does not exist'})
+        
+        instance = Update.objects.create(
+            **validated_data
+        )
+
+        login_user = self.context['request'].data.get("login_user") if 'request' in self.context else None
+        performed_by_user = None
+        if login_user:
+            try:
+                performed_by_user = CustomUser.objects.get(id=login_user["id"])
+            except CustomUser.DoesNotExist:
+                performed_by_user = None
+
+        old_details_snapshot = {"id": instance.id}
+        new_details_snapshot = {
+            "id": instance.id,
+            "work": instance.work.id if instance.work else None,
+            "update_date": str(instance.update_date),
+            "status_note": str(instance.status_note),
+            "progress_percent": str(instance.progress_percent),
+            "image": instance.image.url if instance.image else None,
+            "latitude": str(instance.latitude) if instance.latitude else None,
+            "longitude": str(instance.longitude) if instance.longitude else None,
+        }
+
+        UpdateAuditLog.objects.create(
+            action="CREATE",
+            performed_by=performed_by_user,
+            old_details_of_affected_update=json.dumps(old_details_snapshot),
+            new_details_of_affected_update=json.dumps(new_details_snapshot),
+        )
+
+        return instance
 
 class CommentsSerializer(serializers.ModelSerializer):
     update = UpdateSerializer()
