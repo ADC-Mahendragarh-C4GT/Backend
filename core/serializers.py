@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from .models import *
 from accounts.serializers import UserSerializer
+import json
+from audit.models import *
 
 class RoadSerializer(serializers.ModelSerializer):
     class Meta:
@@ -16,43 +18,62 @@ class ContractorSerializer(serializers.ModelSerializer):
 class InfraWorkSerializer(serializers.ModelSerializer):
     class Meta:
         model = InfraWork
-        fields =  '__all__'
+        fields = '__all__'
         read_only_fields = ['road', 'contractor']
-    def create(self, validated_data):
-        road_data = self.initial_data['road']
-        contractor_data = self.initial_data['contractor']
-        print("Road Data:-----------------", road_data)
-        print("Contractor Data:-----------------", contractor_data)
-        road = Road.objects.get(unique_code=road_data['unique_code'])
-        contractor = Contractor.objects.get(contractor_name=contractor_data['contractor_name'])
 
-        return InfraWork.objects.create(
+    def create(self, validated_data):
+        road_data = self.initial_data.get('road')
+        contractor_data = self.initial_data.get('contractor')
+
+        try:
+            road = Road.objects.get(unique_code=road_data['unique_code'])
+        except Road.DoesNotExist:
+            raise serializers.ValidationError({'road': 'Road with this unique_code does not exist'})
+
+        try:
+            contractor = Contractor.objects.get(contractor_name=contractor_data['contractor_name'])
+        except Contractor.DoesNotExist:
+            raise serializers.ValidationError({'contractor': 'Contractor with this contractor_name does not exist'})
+
+        instance = InfraWork.objects.create(
             road=road,
             contractor=contractor,
             **validated_data
         )
-    
 
-    # def create(self, validated_data):
-    #     road_data = validated_data.pop('road')
-    #     contractor_data = validated_data.pop('contractor')
-    #     print("Road Data:-----------------", road_data)
-    #     print("Contractor Data:-----------------", contractor_data)
-    #     try:
-    #         road = Road.objects.get(unique_code=road_data['unique_code'])
-    #     except Road.DoesNotExist:
-    #         raise serializers.ValidationError({'road': 'Road with this ID does not exist'})
+        login_user = self.context['request'].data.get("login_user") if 'request' in self.context else None
+        performed_by_user = None
+        if login_user:
+            try:
+                performed_by_user = CustomUser.objects.get(id=login_user["id"])
+            except CustomUser.DoesNotExist:
+                performed_by_user = None
 
-    #     try:
-    #         contractor = Contractor.objects.get(contractor_name=contractor_data['contractor_name'])
-    #     except Contractor.DoesNotExist:
-    #         raise serializers.ValidationError({'contractor': 'Contractor with this ID does not exist'})
+        old_details_snapshot = {"id": instance.id}
+        new_details_snapshot = {
+            "id": instance.id,
+            "road": instance.road.id if instance.road else None,
+            "phase": instance.phase,
+            "description": instance.description,
+            "cost": str(instance.cost),
+            "defect_liability_period": instance.defect_liability_period,
+            "image": instance.image.url if instance.image else None,
+            "latitude": str(instance.latitude) if instance.latitude else None,
+            "longitude": str(instance.longitude) if instance.longitude else None,
+            "start_date": str(instance.start_date),
+            "end_date": str(instance.end_date) if instance.end_date else None,
+            "progress_percent": instance.progress_percent,
+            "completedOrpending": instance.completedOrpending,
+            "contractor": instance.contractor.id if instance.contractor else None,
+        }
+        InfraWorkAuditLog.objects.create(
+            action="CREATE",
+            performed_by=performed_by_user,
+            old_details_of_affected_infra_work=json.dumps(old_details_snapshot),
+            new_details_of_affected_infra_work=json.dumps(new_details_snapshot),
+        )
 
-    #     return InfraWork.objects.create(
-    #         road=road,
-    #         contractor=contractor,
-    #         **validated_data
-    #     )
+        return instance
 
 
     

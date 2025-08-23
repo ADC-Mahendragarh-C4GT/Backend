@@ -344,6 +344,8 @@ class InfraWorkViewSet(viewsets.ModelViewSet):
     queryset = InfraWork.objects.all()
     serializer_class = InfraWorkSerializer
 
+    permission_classes = [IsAuthenticated]
+
     @action(detail=True, methods=['get'])
     def updates(self, request, pk=None):
         # Custom endpoint to return all updates for this work without pagination.
