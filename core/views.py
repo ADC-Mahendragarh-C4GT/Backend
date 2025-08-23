@@ -302,6 +302,42 @@ class ContractorViewSet(viewsets.ModelViewSet):
             )
 
         return Response(self.get_serializer(updated_instance).data)
+    
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        login_user_data = request.data.get("login_user", None)
+        performed_by_user = None
+        if login_user_data and "id" in login_user_data:
+            try:
+                performed_by_user = CustomUser.objects.get(id=login_user_data["id"])
+            except CustomUser.DoesNotExist:
+                performed_by_user = None
+
+        changed_old_details = {}
+        changed_new_details = {}
+        changed_old_details["id"] = instance.id
+        changed_old_details["contractor_name"] = instance.contractor_name
+        changed_old_details["contact_person"] = instance.contact_person
+        changed_old_details["contact_number"] = instance.contact_number
+        changed_old_details["email"] = instance.email
+        changed_old_details["address"] = instance.address
+
+        changed_new_details["id"] = instance.id
+
+        ContracterAuditLog.objects.create(
+            action="DELETE",
+            performed_by=performed_by_user,
+            old_details_of_affected_contracter=json.dumps(str(changed_old_details)),
+            new_details_of_affected_contracter=json.dumps(str(changed_new_details))
+        )
+
+        self.perform_destroy(instance)
+
+        return Response(
+            {"detail": f"Contractor '{instance.contractor_name}' deleted successfully"},
+            status=status.HTTP_204_NO_CONTENT
+        )
 
 
 class InfraWorkViewSet(viewsets.ModelViewSet):
@@ -329,6 +365,7 @@ class InfraWorkViewSet(viewsets.ModelViewSet):
     #     print("Road Data:-----------------", road)
     #     print("Contractor Data:-----------------", contractor)
     #     serializer.save(road=road, contractor=contractor)
+    
 from django.utils.timezone import now  # Ensure timezone-aware datetime
 
 class UpdateViewSet(viewsets.ModelViewSet):
