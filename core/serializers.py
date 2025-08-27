@@ -153,7 +153,6 @@ class CommentsSerializer(serializers.ModelSerializer):
         update = self.initial_data.get('update')
         infra_work = self.initial_data.get('infra_work')
 
-
         old_details_snapshot = {"id": instance.id}
         new_details_snapshot = {
             "id": instance.id,
@@ -171,6 +170,7 @@ class CommentsSerializer(serializers.ModelSerializer):
         )
 
         return instance
+
 
 
 

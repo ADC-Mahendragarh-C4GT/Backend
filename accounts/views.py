@@ -20,6 +20,7 @@ class RegisterView(APIView):
         data = request.data
         serializer = RegisterSerializer(data=data)
         if serializer.is_valid():
+            
             user = serializer.save()
             
 

@@ -3,6 +3,7 @@ from accounts.models import CustomUser
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.core.validators import MinValueValidator, MaxValueValidator
 
 # Define choices for road categories, types, and material types
 ROAD_CATEGORY_CHOICES = (
@@ -60,7 +61,10 @@ class InfraWork(models.Model):
     description = models.TextField()
     start_date = models.DateField()
     end_date = models.DateField(null=True,blank=True)
-    progress_percent = models.IntegerField()
+    progress_percent = models.IntegerField(validators=[
+            MinValueValidator(0),
+            MaxValueValidator(100),
+        ], default=0)
     cost = models.DecimalField(max_digits=1000, decimal_places=2)
     contractor = models.ForeignKey(Contractor, on_delete=models.SET_NULL, null=True)
     completedOrpending = models.CharField(max_length=20, choices=[('Completed', 'Completed'), ('Pending', 'Pending')], default='Pending')
@@ -75,7 +79,10 @@ class Update(models.Model):
     work = models.ForeignKey(InfraWork, on_delete=models.CASCADE)
     update_date = models.DateField(auto_now_add=True)
     status_note = models.TextField()
-    progress_percent = models.IntegerField()
+    progress_percent = models.IntegerField(validators=[
+            MinValueValidator(0),
+            MaxValueValidator(100),
+        ], default=0)
     image = models.ImageField(upload_to='infra_images/', blank=True, null=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)

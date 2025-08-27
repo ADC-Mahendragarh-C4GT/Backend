@@ -410,13 +410,22 @@ class UpdateListView(generics.ListAPIView):
 
 class CommentsViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializer
+    
 
     def get_queryset(self):
         queryset = Comments.objects.all().order_by('-comment_date')
         work_id = self.request.query_params.get('work_id')
         if work_id:
             queryset = queryset.filter(infra_work__id=work_id)
+
+        print("queryset:------------------------------", queryset)
+
+        instance = {
+            "queryset": queryset
+        }
         return queryset
+    
+    
     
     
 class OtherDepartmentRequestViewSet(viewsets.ModelViewSet):

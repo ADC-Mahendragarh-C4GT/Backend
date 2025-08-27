@@ -34,6 +34,10 @@ class RegisterSerializer(serializers.ModelSerializer):
             except CustomUser.DoesNotExist:
                 performed_by_user = None
 
+        isValidEmail = CustomUser.objects.filter(email=data['email']).exists()
+        if isValidEmail:
+            raise serializers.ValidationError("Email is already taken")
+
         user = CustomUser.objects.create_user(
             username=data['username'],
             email=data.get('email'),
