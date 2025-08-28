@@ -20,11 +20,9 @@ all_characters = (
 
 
 class RoadViewSet(viewsets.ModelViewSet):
-    queryset = Road.objects.all()
+    queryset = Road.objects.all().filter(isActive=True).order_by('id')
     serializer_class = RoadSerializer
     permission_classes = [AllowAny]
-    print("PATCH method called")
-
 
     def perform_create(self, serializer):
         validated_data = serializer.validated_data
@@ -202,7 +200,8 @@ class RoadViewSet(viewsets.ModelViewSet):
         )
 
 
-        self.perform_destroy(instance)
+        instance.isActive = False
+        instance.save()
 
         return Response(
             {"detail": f"Road '{instance.road_name}' deleted successfully"},

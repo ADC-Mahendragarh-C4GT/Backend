@@ -41,6 +41,7 @@ class Road(models.Model):
     area_name = models.CharField(default='Gumanpura', blank=True, null=True)
     district = models.CharField(default='Kota', blank=True, null= True)
     state = models.CharField(default='Rajasthan', blank=True, null=True)
+    isActive = models.BooleanField(default=True, null=True, blank=True)
 
     def __str__(self):
         return f"{self.unique_code} ({self.road_type}) ({self.road_name})"
@@ -51,6 +52,7 @@ class Contractor(models.Model):
     contact_number = models.CharField(max_length=15, blank=True, null=True)
     email = models.EmailField(blank=True, null=True)
     address = models.TextField(blank=True, null=True)
+    isActive = models.BooleanField(default=True, null=True, blank=True)
 
     def __str__(self):  
         return self.contractor_name
@@ -72,6 +74,8 @@ class InfraWork(models.Model):
     image = models.ImageField(upload_to='infra_images/', blank=True, null=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    isActive = models.BooleanField(default=True, null=True, blank=True)
+
     def __str__(self):
         return f"{self.road.unique_code} - {self.road.road_name} - {self.phase} ({self.start_date} to {self.end_date})"
 
@@ -86,6 +90,7 @@ class Update(models.Model):
     image = models.ImageField(upload_to='infra_images/', blank=True, null=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    isActive = models.BooleanField(default=True, null=True, blank=True)
 
     def __str__(self):
         return f"Update on {self.update_date} for {self.work.road.road_name}: {self.status_note[:50]}..."
@@ -108,6 +113,7 @@ class Comments(models.Model):
     comment_date = models.DateTimeField(auto_now_add=True)
     deleteFlag = models.BooleanField(default=False, blank=True, null=True)
     deleteBy = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True, related_name='deleted_comments')
+    isActive = models.BooleanField(default=True, null=True, blank=True)
 
     def __str__(self):
         return f"{self.commenter.first_name} {self.commenter.last_name} {self.commenter.user_type} on {self.update.update_date}: {self.comment_text[:50]}..."
@@ -123,6 +129,7 @@ class OtherDepartmentRequest(models.Model):
     response_by = models.CharField(max_length=255, null=True, blank=True)
     response_date = models.DateTimeField(blank=True, null=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
+    isActive = models.BooleanField(default=True, null=True, blank=True)
     
     def __str__(self):
         return f"{self.road.road_name} - {self.requested_by} - {self.department_name} ({self.status})"
