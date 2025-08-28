@@ -9,7 +9,7 @@ from drf_extra_fields.fields import Base64ImageField, Base64FileField
 from drf_extra_fields.fields import Base64FileField
 
 class Base64PdfFileField(Base64FileField):
-    ALLOWED_TYPES = ['pdf']  # 👈 Required
+    ALLOWED_TYPES = ['pdf'] 
 
     def get_file_extension(self, filename, decoded_file):
         if decoded_file[:4] == b'%PDF':
@@ -92,6 +92,7 @@ class InfraWorkSerializer(serializers.ModelSerializer):
             "progress_percent": instance.progress_percent,
             "completedOrpending": instance.completedOrpending,
             "contractor": instance.contractor.id if instance.contractor else None,
+            "pdfDescription": instance.pdfDescription.url if instance.pdfDescription else None
         }
         InfraWorkAuditLog.objects.create(
             action="CREATE",
@@ -201,6 +202,8 @@ class CommentsSerializer(serializers.ModelSerializer):
             "update": update,
             "comment_text": instance.comment_text,
             "commenter": str(login_user["id"]) if login_user else None,
+            "comment_date": str(instance.comment_date) if instance.comment_date else None,
+
         }
 
         CommentAuditLog.objects.create(

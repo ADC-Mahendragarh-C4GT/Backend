@@ -144,7 +144,7 @@ class RoadViewSet(viewsets.ModelViewSet):
         for field in new_data.keys():
             old_value = old_data.get(field)
             new_value = new_data.get(field)
-            if old_value != new_value:
+            if new_value:
                 changed_old_details[field] = old_value
                 changed_new_details[field] = new_value
 
@@ -289,7 +289,7 @@ class ContractorViewSet(viewsets.ModelViewSet):
         for field in new_data.keys():
             old_value = old_data.get(field)
             new_value = new_data.get(field)
-            if old_value != new_value:
+            if new_value:
                 changed_old_details[field] = old_value
                 changed_new_details[field] = new_value
 
@@ -349,25 +349,10 @@ class InfraWorkViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['get'])
     def updates(self, request, pk=None):
-        # Custom endpoint to return all updates for this work without pagination.
         work = self.get_object()
         updates = Update.objects.filter(work=work).order_by('-update_date', '-progress_percent')
         serializer = UpdateSerializer(updates, many=True)
         return Response(serializer.data)
-
-    # def perform_create(self, serializer):
-    #     print("InfraWork Serializer    -------------------:------------------", serializer.validated_data)
-    #     road_data = serializer.validated_data['road']
-    #     contractor_data = serializer.validated_data['contractor']
-    #     print("Road Data:-----------------", road_data)
-    #     print("Contractor Data:-----------------", contractor_data)
-    #     roads = Road.objects.all()
-    #     road = roads.filter(unique_code=road_data['unique_code']).first()
-    #     contractors = Contractor.objects.all()
-    #     contractor = contractors.filter(contractor_name=contractor_data['contractor_name']).first()
-    #     print("Road Data:-----------------", road)
-    #     print("Contractor Data:-----------------", contractor)
-    #     serializer.save(road=road, contractor=contractor)
     
 from django.utils.timezone import now  # Ensure timezone-aware datetime
 
@@ -443,9 +428,13 @@ class CommentsViewSet(viewsets.ModelViewSet):
             "update": instance.update.id if instance.update else None,
             "comment_text": instance.comment_text,
             "commenter": instance.commenter.id if instance.commenter else None,
+            "deletedBy": performed_by_user.id if performed_by_user else None,
+            "update": instance.update.id if instance.update else None
+
         }
 
         instance.isActive = False
+        instance.deletedBy = performed_by_user
         instance.save()
 
         CommentAuditLog.objects.create(
@@ -479,6 +468,10 @@ class OtherDepartmentRequestViewSet(viewsets.ModelViewSet):
            "department_name": instance.department_name,
            "requested_by": instance.requested_by,
            "work_description": instance.work_description,
+           "pdfDescription": instance.pdfDescription.url if instance.pdfDescription else None,
+           "road": instance.road.id if instance.road else None,
+           "status": instance.status,
+           "submitted_at": instance.submitted_at,
         }
         OtherDepartmentRequestAuditLog.objects.create(
             action="CREATE",
@@ -510,17 +503,27 @@ class OtherDepartmentRequestViewSet(viewsets.ModelViewSet):
                 performed_by_user = None
         
         old_details_snapshot = {
-            "id": str(instance.id),
-            "response_by": str(instance.response_by) if instance.response_by else None,
-            "response_date": str(instance.response_date) if instance.response_date else None,
-            "status": "Pending",
+           "id": instance.id,
+           "contact_info": instance.contact_info,
+           "department_name": instance.department_name,
+           "requested_by": instance.requested_by,
+           "work_description": instance.work_description,
+           "pdfDescription": instance.pdfDescription.url if instance.pdfDescription else None,
+           "road": instance.road.id if instance.road else None,
+           "status": instance.status,
+           "submitted_at": instance.submitted_at,
         }
 
         new_details_snapshot = {
             "id": instance.id,
-            "response_by": instance.response_by if instance.response_by else None,
-            "response_date": instance.response_date,
-            "status": instance.status,
+           "contact_info": instance.contact_info,
+           "department_name": instance.department_name,
+           "requested_by": instance.requested_by,
+           "work_description": instance.work_description,
+           "pdfDescription": instance.pdfDescription.url if instance.pdfDescription else None,
+           "road": instance.road.id if instance.road else None,
+           "status": instance.status,
+           "submitted_at": instance.submitted_at,
         }
 
         OtherDepartmentRequestAuditLog.objects.create(
