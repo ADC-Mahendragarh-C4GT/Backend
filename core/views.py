@@ -425,6 +425,36 @@ class CommentsViewSet(viewsets.ModelViewSet):
         }
         return queryset
     
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        login_user = request.data.get("login_user")
+        performed_by_user = None
+
+        if login_user:
+            try:
+                performed_by_user = CustomUser.objects.get(id=login_user["id"])
+            except CustomUser.DoesNotExist:
+                performed_by_user = None
+
+        old_details_snapshot = {
+            "id": instance.id,
+            "infra_work": instance.infra_work.id if instance.infra_work else None,
+            "update": instance.update.id if instance.update else None,
+            "comment_text": instance.comment_text,
+            "commenter": instance.commenter.id if instance.commenter else None,
+        }
+
+        instance.isActive = False
+        instance.save()
+
+        CommentAuditLog.objects.create(
+            action="DELETE",
+            performed_by=performed_by_user,
+            old_details_of_affected_comment=json.dumps(old_details_snapshot),
+            new_details_of_affected_comment=json.dumps(old_details_snapshot),
+        )
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
     
     
     

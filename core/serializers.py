@@ -214,7 +214,6 @@ class CommentsSerializer(serializers.ModelSerializer):
 
 
 
-
 class OtherDepartmentRequestSerializer(serializers.ModelSerializer):
     pdfDescription = Base64PdfFileField(required=False, allow_null=True)
     pdf_url = serializers.SerializerMethodField()

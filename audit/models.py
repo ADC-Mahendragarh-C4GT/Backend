@@ -178,5 +178,34 @@ class CommentAuditLog(models.Model):
         performed_by_name = f"{performed_by_user.first_name} {performed_by_user.last_name}" if performed_by_user else "Administrator"
 
         return f"{self.action} Comment details by {performed_by_name} at {self.timestamp}"
+    
 
-        
+class OtherDepartmentRequestAuditLog(models.Model):
+    action = models.CharField(max_length=20, choices=[
+        ("CREATE", "Create"),
+        ("UPDATE", "Update"),
+        ("DELETE", "Delete"),
+    ])
+    performed_by = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='other_department_request_audit_logs')
+    old_details_of_affected_request = models.TextField()
+    new_details_of_affected_request = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def set_old_details(self, data: dict):
+        self.old_details_of_affected_request = json.dumps(data)
+
+    def get_old_details(self) -> dict:
+        return json.loads(self.old_details_of_affected_request) if self.old_details_of_affected_request else {}
+
+    def set_new_details(self, data: dict):
+        self.new_details_of_affected_request = json.dumps(data)
+
+    def get_new_details(self) -> dict:
+        return json.loads(self.new_details_of_affected_request) if self.new_details_of_affected_request else {}
+
+    def __str__(self):
+        performed_by_user = self.performed_by
+
+        performed_by_name = f"{performed_by_user.first_name} {performed_by_user.last_name}" if performed_by_user else "Administrator"
+
+        return f"{self.action} Other Department Request details by {performed_by_name} at {self.timestamp}"
