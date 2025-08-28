@@ -40,7 +40,7 @@ class LoginView(APIView):
         print("Email:------------------------- ", email)
         print("Password:------------------------- ", password)      
         print("User Type:------------------------- ", user_type)
-        user = CustomUser.objects.filter(email=email, user_type=user_type).first()
+        user = CustomUser.objects.filter(email=email, user_type=user_type, isActive=True).first()
         print("User:------------------------- ", user)
         if user and user.check_password(password):
             refresh = RefreshToken.for_user(user)
@@ -77,9 +77,6 @@ class ProfileView(APIView):
             }, status=status.HTTP_401_UNAUTHORIZED)
 
         serializer = UserSerializer(request.user)
-        isActiveUserOnly = request.user.isActive
-        if not isActiveUserOnly:
-            return Response({"detail": "User is not existed or deleted."}, status=status.HTTP_403_FORBIDDEN)
         return Response(serializer.data)
     
 class LogoutView(APIView):
@@ -173,7 +170,7 @@ class UsersView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        users = CustomUser.objects.all().filter(isActive=True)
+        users = CustomUser.objects.all()
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
     

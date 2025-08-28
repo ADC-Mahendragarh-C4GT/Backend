@@ -20,7 +20,7 @@ all_characters = (
 
 
 class RoadViewSet(viewsets.ModelViewSet):
-    queryset = Road.objects.all().filter(isActive=True).order_by('id')
+    queryset = Road.objects.all()
     serializer_class = RoadSerializer
     permission_classes = [AllowAny]
 
@@ -331,7 +331,8 @@ class ContractorViewSet(viewsets.ModelViewSet):
             new_details_of_affected_contracter=json.dumps(str(changed_new_details))
         )
 
-        self.perform_destroy(instance)
+        instance.isActive = False
+        instance.save()
 
         return Response(
             {"detail": f"Contractor '{instance.contractor_name}' deleted successfully"},
