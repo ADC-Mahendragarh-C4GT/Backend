@@ -4,6 +4,7 @@ from .models import *
 from accounts.serializers import UserSerializer
 import json
 from audit.models import *
+from drf_extra_fields.fields import Base64ImageField
 
 class RoadSerializer(serializers.ModelSerializer):
     class Meta:
@@ -18,6 +19,8 @@ class ContractorSerializer(serializers.ModelSerializer):
 
 
 class InfraWorkSerializer(serializers.ModelSerializer):
+    image = Base64ImageField(required=False)
+
     class Meta:
         model = InfraWork
         fields = '__all__'
@@ -42,6 +45,15 @@ class InfraWorkSerializer(serializers.ModelSerializer):
             contractor=contractor,
             **validated_data
         )
+        Update.objects.create(
+            work=instance,
+            status_note="InfraWork created.",
+            progress_percent=instance.progress_percent,
+            image=instance.image,
+            latitude=instance.latitude,
+            longitude=instance.longitude,
+        )
+
 
         login_user = self.context['request'].data.get("login_user") if 'request' in self.context else None
         performed_by_user = None
