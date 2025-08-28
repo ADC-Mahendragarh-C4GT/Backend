@@ -91,11 +91,19 @@ class InfraWorkSerializer(serializers.ModelSerializer):
 
 
 class UpdateSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+    image = Base64ImageField(required=False)
 
     class Meta:
         model = Update
         fields = '__all__'
+        extra_fields = ['image_url']
 
+    def get_image_url(self, obj):
+        if obj.image:
+            return f"{settings.SITE_URL}{obj.image.url}"
+        return None
+    
     def create(self, validated_data):
         workId = self.initial_data.get('work')
         roadId = self.initial_data.get('road')
