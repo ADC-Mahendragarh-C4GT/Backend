@@ -20,7 +20,7 @@ class RegisterView(APIView):
         data = request.data
         serializer = RegisterSerializer(data=data)
         if serializer.is_valid():
-            
+
             user = serializer.save()
             
 
@@ -77,6 +77,9 @@ class ProfileView(APIView):
             }, status=status.HTTP_401_UNAUTHORIZED)
 
         serializer = UserSerializer(request.user)
+        isActiveUserOnly = request.user.isActive
+        if not isActiveUserOnly:
+            return Response({"detail": "User is not existed or deleted."}, status=status.HTTP_403_FORBIDDEN)
         return Response(serializer.data)
     
 class LogoutView(APIView):
@@ -113,7 +116,7 @@ class UpdateUserView(APIView):
         try:
             user = CustomUser.objects.get(pk=user_id)
         except CustomUser.DoesNotExist:
-            return Response({"message": "User not found", "status": False}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "User not found or deleted", "status": False}, status=status.HTTP_404_NOT_FOUND)
 
         serializer = UserUpdateSerializer(user, data=request.data, partial=True)
         if not serializer.is_valid():
@@ -170,7 +173,7 @@ class UsersView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        users = CustomUser.objects.all()
+        users = CustomUser.objects.all().filter(isActive=True)
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
     
@@ -183,9 +186,9 @@ class GetLoginUserView(APIView):
         if not user_id:
             return Response({"error": "id is required"}, status=400)
 
-        login_user = CustomUser.objects.filter(id=user_id).first()
+        login_user = CustomUser.objects.filter(id=user_id, isActive=True).first()
         if not login_user:
-            return Response({"error": "User not found"}, status=404)
+            return Response({"error": "User not found or deleted"}, status=404)
 
         serializer = UserSerializer(login_user)
         return Response(serializer.data)
@@ -224,7 +227,8 @@ class DeleteUserView(APIView):
             new_details_of_affected_user=json.dumps(changed_new_details)
         )
 
-        user.delete()
+        user.isActive = False
+        user.save()
         return Response(
             {"message": "User deleted successfully", "status": True},
             status=status.HTTP_200_OK
