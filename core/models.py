@@ -132,6 +132,7 @@ class OtherDepartmentRequest(models.Model):
     response_date = models.DateTimeField(blank=True, null=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
     isActive = models.BooleanField(default=True, null=True, blank=True)
+    pdfDescription = models.FileField(upload_to='other_department_pdfs/', blank=True, null=True)
     
     def __str__(self):
         return f"{self.road.road_name} - {self.requested_by} - {self.department_name} ({self.status})"

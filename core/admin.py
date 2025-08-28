@@ -33,6 +33,6 @@ class CommentsAdmin(admin.ModelAdmin):
 
 @admin.register(OtherDepartmentRequest)
 class OtherDepartmentRequestAdmin(admin.ModelAdmin):
-    list_display = ("id", "road", "work_description", "requested_by", "status", "isActive")
+    list_display = ("id", "road", "work_description", "requested_by", "status", "isActive", "pdfDescription")
     list_filter = ("isActive",)
     search_fields = ("road__road_name", "requested_by", "department_name")

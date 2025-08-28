@@ -216,11 +216,17 @@ class CommentsSerializer(serializers.ModelSerializer):
 
 
 class OtherDepartmentRequestSerializer(serializers.ModelSerializer):
+    pdfDescription = Base64PdfFileField(required=False, allow_null=True)
+    pdf_url = serializers.SerializerMethodField()
     class Meta:
         model = OtherDepartmentRequest
         fields = '__all__'
+        extra_fields = ['pdf_url']
 
-    
+    def get_pdf_url(self, obj):
+        if obj.pdfDescription:
+            return obj.pdfDescription.url
+        return None
 
 class InfraWorksByRoadSerializer(serializers.ModelSerializer):
     road = RoadSerializer()
