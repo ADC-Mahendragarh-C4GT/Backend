@@ -11,6 +11,7 @@ import csv
 import random
 import string
 from audit.models import *
+from django.core.serializers.json import DjangoJSONEncoder
 
 
 all_characters = (
@@ -466,6 +467,27 @@ class OtherDepartmentRequestViewSet(viewsets.ModelViewSet):
         if self.action == 'create':
             return [AllowAny()]
         return [IsAuthenticated()]
+    
+    def perform_create(self, serializer):
+        instance = serializer.save()
+
+        
+        old_details_snapshot = {"id": instance.id}
+        new_details_snapshot = {
+           "id": instance.id,
+           "contact_info": instance.contact_info,
+           "department_name": instance.department_name,
+           "requested_by": instance.requested_by,
+           "work_description": instance.work_description,
+        }
+        OtherDepartmentRequestAuditLog.objects.create(
+            action="CREATE",
+            performed_by=None,
+            old_details_of_affected_request=json.dumps(old_details_snapshot),
+            new_details_of_affected_request=json.dumps(new_details_snapshot),
+        )
+
+        return instance
 
     def perform_update(self, serializer):
         instance = serializer.instance
@@ -479,6 +501,34 @@ class OtherDepartmentRequestViewSet(viewsets.ModelViewSet):
 
         else:
             serializer.save()
+        
+        login_user = self.request.data.get("login_user")
+        if login_user:
+            try:
+                performed_by_user = CustomUser.objects.get(id=login_user["id"])
+            except CustomUser.DoesNotExist:
+                performed_by_user = None
+        
+        old_details_snapshot = {
+            "id": str(instance.id),
+            "response_by": str(instance.response_by) if instance.response_by else None,
+            "response_date": str(instance.response_date) if instance.response_date else None,
+            "status": "Pending",
+        }
+
+        new_details_snapshot = {
+            "id": instance.id,
+            "response_by": instance.response_by if instance.response_by else None,
+            "response_date": instance.response_date,
+            "status": instance.status,
+        }
+
+        OtherDepartmentRequestAuditLog.objects.create(
+            action="UPDATE",
+            performed_by=performed_by_user,
+            old_details_of_affected_request=json.dumps(old_details_snapshot, cls=DjangoJSONEncoder),
+            new_details_of_affected_request=json.dumps(new_details_snapshot, cls=DjangoJSONEncoder),
+        )
 
 
 class UploadCSVView(APIView):
