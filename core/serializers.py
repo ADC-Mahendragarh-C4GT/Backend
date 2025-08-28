@@ -4,7 +4,18 @@ from .models import *
 from accounts.serializers import UserSerializer
 import json
 from audit.models import *
-from drf_extra_fields.fields import Base64ImageField
+from drf_extra_fields.fields import Base64ImageField, Base64FileField
+
+from drf_extra_fields.fields import Base64FileField
+
+class Base64PdfFileField(Base64FileField):
+    ALLOWED_TYPES = ['pdf']  # 👈 Required
+
+    def get_file_extension(self, filename, decoded_file):
+        if decoded_file[:4] == b'%PDF':
+            return "pdf"
+        raise serializers.ValidationError("Uploaded file is not a valid PDF")
+
 
 class RoadSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,6 +31,7 @@ class ContractorSerializer(serializers.ModelSerializer):
 
 class InfraWorkSerializer(serializers.ModelSerializer):
     image = Base64ImageField(required=False)
+    pdfDescription = Base64PdfFileField(required=False, allow_null=True)
 
     class Meta:
         model = InfraWork
@@ -50,6 +62,7 @@ class InfraWorkSerializer(serializers.ModelSerializer):
             status_note="InfraWork created.",
             progress_percent=instance.progress_percent,
             image=instance.image,
+            pdfDescription=instance.pdfDescription,
             latitude=instance.latitude,
             longitude=instance.longitude,
         )
@@ -93,17 +106,24 @@ class InfraWorkSerializer(serializers.ModelSerializer):
 class UpdateSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
     image = Base64ImageField(required=False)
+    pdfDescription = Base64PdfFileField(required=False, allow_null=True)
+    pdf_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Update
         fields = '__all__'
-        extra_fields = ['image_url']
+        extra_fields = ['image_url', 'pdf_url']
 
     def get_image_url(self, obj):
         if obj.image:
             return f"{settings.SITE_URL}{obj.image.url}"
         return None
-    
+
+    def get_pdf_url(self, obj):
+        if obj.pdfDescription:
+            return f"{settings.SITE_URL}{obj.pdfDescription.url}"
+        return None
+
     def create(self, validated_data):
         workId = self.initial_data.get('work')
         roadId = self.initial_data.get('road')
@@ -137,6 +157,7 @@ class UpdateSerializer(serializers.ModelSerializer):
             "image": instance.image.url if instance.image else None,
             "latitude": str(instance.latitude) if instance.latitude else None,
             "longitude": str(instance.longitude) if instance.longitude else None,
+            "pdfDescription": instance.pdfDescription.url if instance.pdfDescription else None,
         }
 
         UpdateAuditLog.objects.create(

@@ -75,6 +75,7 @@ class InfraWork(models.Model):
     latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
     isActive = models.BooleanField(default=True, null=True, blank=True)
+    pdfDescription = models.FileField(upload_to='infra_pdfs/', blank=True, null=True)
 
     def __str__(self):
         return f"{self.road.unique_code} - {self.road.road_name} - {self.phase} ({self.start_date} to {self.end_date})"
@@ -91,6 +92,7 @@ class Update(models.Model):
     latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
     isActive = models.BooleanField(default=True, null=True, blank=True)
+    pdfDescription = models.FileField(upload_to='infra_pdfs/', blank=True, null=True)
 
     def __str__(self):
         return f"Update on {self.update_date} for {self.work.road.road_name}: {self.status_note[:50]}..."
