@@ -471,7 +471,7 @@ class OtherDepartmentRequestViewSet(viewsets.ModelViewSet):
            "pdfDescription": instance.pdfDescription.url if instance.pdfDescription else None,
            "road": instance.road.id if instance.road else None,
            "status": instance.status,
-           "submitted_at": instance.submitted_at,
+           "submitted_at":  instance.submitted_at.isoformat() if instance.submitted_at else None,
         }
         OtherDepartmentRequestAuditLog.objects.create(
             action="CREATE",
