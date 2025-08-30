@@ -32,11 +32,22 @@ class ContractorSerializer(serializers.ModelSerializer):
 class InfraWorkSerializer(serializers.ModelSerializer):
     image = Base64ImageField(required=False)
     pdfDescription = Base64PdfFileField(required=False, allow_null=True)
+    end_date = serializers.DateField(required=False, allow_null=True)
 
     class Meta:
         model = InfraWork
         fields = '__all__'
         read_only_fields = ['road', 'contractor']
+    
+    def validate_end_date(self, value):
+        if value == "":
+            return None
+        return value
+
+    def validate_image(self, value):
+        if value == "":
+            return None
+        return value
 
     def create(self, validated_data):
         road_data = self.initial_data.get('road')
@@ -61,8 +72,8 @@ class InfraWorkSerializer(serializers.ModelSerializer):
             work=instance,
             status_note="InfraWork created.",
             progress_percent=instance.progress_percent,
-            image=instance.image,
-            pdfDescription=instance.pdfDescription,
+            image=instance.image if instance.image else None,
+            pdfDescription=instance.pdfDescription if instance.pdfDescription else None,
             latitude=instance.latitude,
             longitude=instance.longitude,
         )
