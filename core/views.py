@@ -389,7 +389,7 @@ class UpdateViewSet(viewsets.ModelViewSet):
 from rest_framework import generics
 
 class UpdateListView(generics.ListAPIView):
-    queryset = InfraWork.objects.all().order_by('-start_date')
+    queryset = InfraWork.objects.all().order_by('-start_date', '-id')
     serializer_class = InfraWorkSerializer
 
     
