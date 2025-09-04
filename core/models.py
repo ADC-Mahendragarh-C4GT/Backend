@@ -72,8 +72,8 @@ class InfraWork(models.Model):
     completedOrpending = models.CharField(max_length=20, choices=[('Completed', 'Completed'), ('Pending', 'Pending')], default='Pending')
     defect_liability_period = models.IntegerField(help_text="Defect Liability Period in months", default=0, null=True, blank=True)
     image = models.ImageField(upload_to='infra_images/', blank=True, null=True)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
     isActive = models.BooleanField(default=True, null=True, blank=True)
     pdfDescription = models.FileField(upload_to='infra_pdfs/', blank=True, null=True)
 
