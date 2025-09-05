@@ -32,13 +32,19 @@ class RoadViewSet(viewsets.ModelViewSet):
         flag = True
         while flag:
             specialCharactor = random.choice(all_characters)
-            unique_code = (
+            prefix = (
                 instance.state[0].upper() +
                 instance.district[0].upper() +
                 instance.area_name[0].upper() +
-                str(instance.length_km).split('.')[0] +
-                specialCharactor
+                str(instance.length_km).split('.')[0]
             )
+
+            # Count existing roads with same prefix
+            count = Road.objects.filter(unique_code__startswith=prefix).count() + 1
+
+            # Format sequential suffix with leading zeros (001, 002…)
+            unique_code = f"{prefix}-{count:03d}"
+            
             if not Road.objects.filter(unique_code=unique_code).exists():
                 flag = False
 
@@ -109,18 +115,16 @@ class RoadViewSet(viewsets.ModelViewSet):
         if has_changed:
             flag = True
             while flag:
-                specialCharactor = random.choice(all_characters)
-                unique_code = (
+                prefix = (
                     updated_instance.state[0].upper() +
                     updated_instance.district[0].upper() +
                     updated_instance.area_name[0].upper() +
-                    str(updated_instance.length_km).split('.')[0] +
-                    specialCharactor
+                    str(updated_instance.length_km).split('.')[0]
                 )
-                if not Road.objects.filter(unique_code=unique_code).exclude(pk=updated_instance.pk).exists():
-                    flag = False
 
-            updated_instance.unique_code = unique_code
+                count = Road.objects.filter(unique_code__startswith=prefix).exclude(pk=updated_instance.pk).count() + 1
+                
+            updated_instance.unique_code = f"{prefix}-{count:03d}"
             updated_instance.save()
 
         new_data = {
@@ -555,7 +559,16 @@ class UploadCSVView(APIView):
                 flag = True
                 while flag:
                     specialCharactor = random.choice(all_characters)
-                    unique_code =( row['state'][0].upper() + row['district'][0].upper() + row['area_name'][0].upper() + row['length_km'].split('.')[0] + specialCharactor)
+                    prefix = (
+                        row['state'][0].upper() +
+                        row['district'][0].upper() +
+                        row['area_name'][0].upper() +
+                        str(row['length_km']).split('.')[0]
+                    )
+                    count = Road.objects.filter(unique_code__startswith=prefix).count() + 1
+                    unique_code = f"{prefix}-{count:03d}"
+
+
                     # Check if this code already exists
                     if not Road.objects.filter(unique_code=unique_code).exists():
                         flag = False
@@ -578,6 +591,7 @@ class UploadCSVView(APIView):
                 login_user_id = request.data.get("login_user")
                 performed_by_user = None
                 print("---login_user_id-------------------",login_user_id)
+                print("---instance road-------------------",instance.road_name)
                 if login_user_id:
                     try:
                         performed_by_user = CustomUser.objects.get(id=login_user_id)

@@ -8,14 +8,13 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 
 
 class Road(models.Model):
-    unique_code = models.CharField(max_length=500, unique=True, blank=True, null=True)
+    unique_code = models.CharField(max_length=5000, unique=True, blank=True, null=True)
     road_name = models.CharField()
     ward_number = models.CharField(blank=True, null=True)
     location = models.TextField(blank=True, null=True)
     length_km = models.DecimalField(decimal_places=4, max_digits=200, default=0.0)
     width_m = models.DecimalField(decimal_places=4, max_digits=200, default=0.0)
-    road_type = models.CharField( choices=settings.ROAD_TYPE_CHOICES,
-        default='others')
+    road_type = models.CharField( choices=settings.ROAD_TYPE_CHOICES, default='others')
     material_type = models.CharField( choices=settings.MATERIAL_TYPE_CHOICES, default='Other')
     road_category = models.CharField( choices=settings.ROAD_CATEGORY_CHOICES, default='Other')
     area_name = models.CharField(default='Gumanpura', blank=True, null=True)
