@@ -89,8 +89,8 @@ class Update(models.Model):
             MaxValueValidator(100),
         ], default=0)
     image = models.ImageField(upload_to='infra_images/', blank=True, null=True)
-    latitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
-    longitude = models.DecimalField(max_digits=9, decimal_places=6, blank=True, null=True)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
     isActive = models.BooleanField(default=True, null=True, blank=True)
     pdfDescription = models.FileField(upload_to='infra_pdfs/', blank=True, null=True)
 
