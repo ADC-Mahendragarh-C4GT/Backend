@@ -5,27 +5,6 @@ from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.validators import MinValueValidator, MaxValueValidator
 
-# Define choices for road categories, types, and material types
-ROAD_CATEGORY_CHOICES = (
-    ('ColonyStreet', 'Colony Street'),
-    ('Road', 'Road'),
-    ('Other', 'Other'),
-)
-
-user_type_choices = settings.USER_TYPE_CHOICES
-
-ROAD_TYPE_CHOICES = (
-    ('IV', 'Road Type IV'),
-    ('VI', 'Road Type VI'),
-    ('others', 'Other Road Type')
-)
-
-MATERIAL_TYPE_CHOICES = (
-    ('CC', 'Material Type CC'),
-    ('IPB', 'Material Type IPB'),
-    ('Bitumin', 'Material Type Bitumin'),
-    ('Other', 'Other'),
-)
 
 
 class Road(models.Model):
@@ -35,9 +14,10 @@ class Road(models.Model):
     location = models.TextField(blank=True, null=True)
     length_km = models.DecimalField(decimal_places=4, max_digits=200, default=0.0)
     width_m = models.DecimalField(decimal_places=4, max_digits=200, default=0.0)
-    road_type = models.CharField( choices=ROAD_TYPE_CHOICES, default='IV')
-    material_type = models.CharField( choices=MATERIAL_TYPE_CHOICES, default='CC')
-    road_category = models.CharField( choices=ROAD_CATEGORY_CHOICES, default='Road')
+    road_type = models.CharField( choices=settings.ROAD_TYPE_CHOICES,
+        default='others')
+    material_type = models.CharField( choices=settings.MATERIAL_TYPE_CHOICES, default='Other')
+    road_category = models.CharField( choices=settings.ROAD_CATEGORY_CHOICES, default='Other')
     area_name = models.CharField(default='Gumanpura', blank=True, null=True)
     district = models.CharField(default='Kota', blank=True, null= True)
     state = models.CharField(default='Rajasthan', blank=True, null=True)

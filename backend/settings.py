@@ -158,6 +158,42 @@ for item in raw_choices.split(","):
 
 globals()['USER_TYPE_CHOICES'] = USER_TYPE_CHOICES
 
+# settings.py
+
+# Road Category Choices
+ROAD_CATEGORY_CHOICES = (
+    ('City Road', 'City Road'),
+    ('Major District Road', 'Major District Road'),
+    ('National Highway', 'National Highway'),
+    ('State Highway', 'State Highway'),
+    ('Other', 'Other'),
+)
+
+# Road Type Choices
+ROAD_TYPE_CHOICES = (
+    ('1', 'Road Type 1'),
+    ('2', 'Road Type 2'),
+    ('3', 'Road Type 3'),
+    ('4', 'Road Type 4'),
+    ('5', 'Road Type 5'),
+    ('6', 'Road Type 6'),
+    ('7', 'Road Type 7'),
+    ('8', 'Road Type 8'),
+    ('9', 'Road Type 9'),
+    ('10', 'Road Type 10'),
+    ('others', 'Other Road Type'),
+)
+
+# Material Type Choices
+MATERIAL_TYPE_CHOICES = (
+    ('CC', 'Material Type CC'),
+    ('KACCHA', 'Material Type KACCHA'),
+    ('METALIC', 'Material Type METALIC'),
+    ('Paver Block', 'Material Type Paver Block'),
+    ('Other', 'Other'),
+)
+
+
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
