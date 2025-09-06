@@ -9,6 +9,12 @@ from django.utils.decorators import method_decorator
 from rest_framework.permissions import AllowAny
 from rest_framework_simplejwt.tokens import RefreshToken
 from audit.models import UserAuditLog
+from django.conf import settings
+SITE_URL = settings.SITE_URL
+SENDERS_EMAIL = settings.SENDERS_EMAIL
+from backend.settings import Frontend_URL
+from accounts.models import *
+import json
 
 
 
@@ -230,3 +236,75 @@ class DeleteUserView(APIView):
             {"message": "User deleted successfully", "status": True},
             status=status.HTTP_200_OK
         )
+    
+
+
+
+
+
+
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.core.mail import send_mail
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+
+# Step 1: Request Reset Link
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def request_password_reset(request):
+    email = request.data.get("email")
+    try:
+        user = CustomUser.objects.get(email=email)
+    except CustomUser.DoesNotExist:
+        return Response({"error": "No user found with this email"}, status=404)
+
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    token = default_token_generator.make_token(user)
+
+    reset_link = Frontend_URL + f"/reset-password/{uid}/{token}" 
+
+    send_mail(
+        "Password Reset Request",
+        f"Click the link to reset your password: {reset_link}",
+        SENDERS_EMAIL,
+        [user.email],
+        fail_silently=False,
+    )
+
+    return Response({"message": "Password reset link sent!"})
+
+# Step 2: Validate Token (optional, frontend can check before showing reset form)
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def validate_reset_token(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        return Response({"error": "Invalid user"}, status=400)
+
+    if default_token_generator.check_token(user, token):
+        return Response({"message": "Valid token"})
+    return Response({"error": "Invalid or expired token"}, status=400)
+
+
+# Step 3: Reset Password
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def reset_password(request, uidb64, token):
+    new_password = request.data.get("password")
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = CustomUser.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
+        return Response({"error": "Invalid user"}, status=400)
+
+    if default_token_generator.check_token(user, token):
+        user.set_password(new_password)
+        user.save()
+        return Response({"message": "Password reset successful"})
+    return Response({"error": "Invalid or expired token"}, status=400)
