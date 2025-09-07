@@ -19,9 +19,14 @@ environ.Env.read_env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+def parse_choices(value: str):
+    """
+    Convert env string like "A:Option A,B:Option B"
+    into Django choices [("A", "Option A"), ("B", "Option B")]
+    """
+    return [
+        tuple(item.split(":", 1)) for item in value.split(",") if item and ":" in item
+    ]
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = env('SECRET_KEY')
@@ -88,11 +93,11 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": "mcrohtak",
-        "USER": "siddahrth",
-        "PASSWORD": "newpassword",
-        "HOST": "127.0.0.1",
-        "PORT": "5433",
+        "NAME": env("DB_NAME"),
+        "USER": env("DB_USER"),
+        "PASSWORD": env("DB_PASSWORD"),
+        "HOST": env("DB_HOST"),
+        "PORT": env("DB_PORT"), 
     }
 }
 
@@ -120,7 +125,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# TIME_ZONE = 'Asia/Kolkata'
+TIME_ZONE = env('TIME_ZONE', default='Asia/Kolkata')
 
 USE_I18N = True
 
@@ -161,40 +167,9 @@ for item in raw_choices.split(","):
 
 globals()['USER_TYPE_CHOICES'] = USER_TYPE_CHOICES
 
-# settings.py
-
-# Road Category Choices
-ROAD_CATEGORY_CHOICES = (
-    ('City Road', 'City Road'),
-    ('Major District Road', 'Major District Road'),
-    ('National Highway', 'National Highway'),
-    ('State Highway', 'State Highway'),
-    ('Other', 'Other'),
-)
-
-# Road Type Choices
-ROAD_TYPE_CHOICES = (
-    ('1', 'Road Type 1'),
-    ('2', 'Road Type 2'),
-    ('3', 'Road Type 3'),
-    ('4', 'Road Type 4'),
-    ('5', 'Road Type 5'),
-    ('6', 'Road Type 6'),
-    ('7', 'Road Type 7'),
-    ('8', 'Road Type 8'),
-    ('9', 'Road Type 9'),
-    ('10', 'Road Type 10'),
-    ('others', 'Other Road Type'),
-)
-
-# Material Type Choices
-MATERIAL_TYPE_CHOICES = (
-    ('CC', 'Material Type CC'),
-    ('KACCHA', 'Material Type KACCHA'),
-    ('METALIC', 'Material Type METALIC'),
-    ('Paver Block', 'Material Type Paver Block'),
-    ('Other', 'Other'),
-)
+ROAD_CATEGORY_CHOICES = parse_choices(env.str('ROAD_CATEGORY_CHOICES'))
+ROAD_TYPE_CHOICES = parse_choices(env.str('ROAD_TYPE_CHOICES'))
+MATERIAL_TYPE_CHOICES = parse_choices(env.str('MATERIAL_TYPE_CHOICES'))
 
 
 
@@ -210,29 +185,26 @@ REST_FRAMEWORK = {
 
 from datetime import timedelta
 
-SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=120), 
-    "REFRESH_TOKEN_LIFETIME": timedelta(days=1),     
-    "ROTATE_REFRESH_TOKENS": False,
-    "BLACKLIST_AFTER_ROTATION": True,
-    "UPDATE_LAST_LOGIN": False,
-}
+SIMPLE_JWT = env.dict("SIMPLE_JWT")
 
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-SITE_URL =  "http://localhost:8000"
-SENDERS_EMAIL = "siddharthnama2003@gmail.com"
-Frontend_URL = "http://localhost:5173"
+SITE_URL =  env('SITE_URL', default="http://localhost:8000")
+# SITE_URL =  "http://localhost:8000"
+SENDERS_EMAIL = env('SENDERS_EMAIL', default="siddharthnama2003@gmail.com")
+# SENDERS_EMAIL = "siddharthnama2003@gmail.com"
+FRONTEND_URL = env('FRONTEND_URL')
 
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
+EMAIL_PORT = env('EMAIL_PORT', default=587)
+# EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "siddharthnama2003@gmail.com"
-EMAIL_HOST_PASSWORD = "ltsudnggczmqshlq" 
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 

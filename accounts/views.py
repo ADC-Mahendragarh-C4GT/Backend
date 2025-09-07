@@ -12,9 +12,20 @@ from audit.models import UserAuditLog
 from django.conf import settings
 SITE_URL = settings.SITE_URL
 SENDERS_EMAIL = settings.SENDERS_EMAIL
-from backend.settings import Frontend_URL
+from django.conf import settings
+
+frontend_url = settings.FRONTEND_URL
+
 from accounts.models import *
 import json
+
+
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.utils.encoding import force_bytes
+from django.core.mail import send_mail
+from rest_framework.decorators import api_view, permission_classes
+
 
 
 
@@ -239,19 +250,6 @@ class DeleteUserView(APIView):
     
 
 
-
-
-
-
-from django.contrib.auth.models import User
-from django.contrib.auth.tokens import default_token_generator
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes
-from django.core.mail import send_mail
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import AllowAny
-from rest_framework.response import Response
-
 # Step 1: Request Reset Link
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -265,7 +263,7 @@ def request_password_reset(request):
     uid = urlsafe_base64_encode(force_bytes(user.pk))
     token = default_token_generator.make_token(user)
 
-    reset_link = Frontend_URL + f"/reset-password/{uid}/{token}" 
+    reset_link = frontend_url + f"/reset-password/{uid}/{token}" 
 
     send_mail(
         "Password Reset Request",
@@ -283,8 +281,8 @@ def request_password_reset(request):
 def validate_reset_token(request, uidb64, token):
     try:
         uid = urlsafe_base64_decode(uidb64).decode()
-        user = User.objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        user = CustomUser.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
         return Response({"error": "Invalid user"}, status=400)
 
     if default_token_generator.check_token(user, token):

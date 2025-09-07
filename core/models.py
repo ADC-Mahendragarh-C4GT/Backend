@@ -1,9 +1,11 @@
+from datetime import timezone
 from django.db import models
 from accounts.models import CustomUser
 from django.conf import settings
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.validators import MinValueValidator, MaxValueValidator
+import pytz
 
 
 
@@ -55,7 +57,7 @@ class InfraWork(models.Model):
     longitude = models.FloatField(null=True, blank=True)
     isActive = models.BooleanField(default=True, null=True, blank=True)
     pdfDescription = models.FileField(upload_to='infra_pdfs/', blank=True, null=True)
-
+  
     def __str__(self):
         return f"{self.road.unique_code} - {self.road.road_name} - {self.phase} ({self.start_date} to {self.end_date})"
 
@@ -92,6 +94,11 @@ class Comments(models.Model):
     comment_text = models.TextField()
     commenter = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     comment_date = models.DateTimeField(auto_now_add=True)
+    
+    def get_local_comment_date(self):
+        tz = pytz.timezone(getattr(settings, 'TIME_ZONE', 'Asia/Kolkata'))
+        return timezone.localtime(self.comment_date, tz)
+
     deleteFlag = models.BooleanField(default=False, blank=True, null=True)
     deleteBy = models.ForeignKey(CustomUser, on_delete=models.CASCADE, null=True, blank=True, related_name='deleted_comments')
     isActive = models.BooleanField(default=True, null=True, blank=True)
@@ -110,6 +117,11 @@ class OtherDepartmentRequest(models.Model):
     response_by = models.CharField(max_length=255, null=True, blank=True)
     response_date = models.DateTimeField(blank=True, null=True)
     submitted_at = models.DateTimeField(auto_now_add=True)
+
+    def get_local_submitted_at(self):
+        tz = pytz.timezone(getattr(settings, 'TIME_ZONE', 'Asia/Kolkata'))
+        return timezone.localtime(self.submitted_at, tz)
+
     isActive = models.BooleanField(default=True, null=True, blank=True)
     pdfDescription = models.FileField(upload_to='other_department_pdfs/', blank=True, null=True)
     
