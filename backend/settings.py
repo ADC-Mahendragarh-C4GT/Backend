@@ -185,8 +185,13 @@ REST_FRAMEWORK = {
 
 from datetime import timedelta
 
-SIMPLE_JWT = env.dict("SIMPLE_JWT")
-
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=int(env("SIMPLE_JWT_ACCESS_TOKEN_LIFETIME"))),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=int(env("SIMPLE_JWT_REFRESH_TOKEN_LIFETIME"))),
+    "ROTATE_REFRESH_TOKENS": env.bool("SIMPLE_JWT_ROTATE_REFRESH_TOKENS", default=False),
+    "BLACKLIST_AFTER_ROTATION": env.bool("SIMPLE_JWT_BLACKLIST_AFTER_ROTATION", default=True),
+    "UPDATE_LAST_LOGIN": env.bool("SIMPLE_JWT_UPDATE_LAST_LOGIN", default=False),
+}
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

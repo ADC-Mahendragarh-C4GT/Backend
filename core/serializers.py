@@ -111,6 +111,12 @@ class InfraWorkSerializer(serializers.ModelSerializer):
             old_details_of_affected_infra_work=json.dumps(old_details_snapshot),
             new_details_of_affected_infra_work=json.dumps(new_details_snapshot),
         )
+        UpdateAuditLog.objects.create(
+            action="CREATE",
+            performed_by=performed_by_user,
+            old_details_of_affected_update=json.dumps(old_details_snapshot),
+            new_details_of_affected_update=json.dumps(new_details_snapshot),
+        )
 
         return instance
 
