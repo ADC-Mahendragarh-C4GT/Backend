@@ -17,6 +17,7 @@ urlpatterns = [
     path('api/updatesPage/', UpdateListView.as_view(), name='update-list'),
     path('upload-csv/', UploadCSVView.as_view(), name='upload-csv'),
     path('api/', include(router.urls)),
-     path("send-xen-email/", send_xen_email, name="send-xen-email"),
+    path("send-xen-email/", send_xen_email, name="send-xen-email"),
+    path("send-status-email/<int:pk>/", send_status_email, name="send_status_email"),
 
 ]

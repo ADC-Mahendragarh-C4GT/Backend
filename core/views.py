@@ -691,3 +691,43 @@ Please review and take necessary action.
         return Response({"message": "Email sent to XEN successfully"})
         
     return Response(serializer.errors, status=400)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def send_status_email(request, pk):
+    serializer = StatusEmailSerializer(data=request.data)
+    if serializer.is_valid():
+        status = serializer.validated_data["status"]
+        response_by = serializer.validated_data["response_by"]
+        department_email = serializer.validated_data["department_email"]
+
+        try:
+            req = OtherDepartmentRequest.objects.get(pk=pk)
+        except OtherDepartmentRequest.DoesNotExist:
+            return Response({"error": "Request not found"}, status=404)
+
+        subject = f"Status Update: {req.department_name} request ({status})"
+        body = f"""
+Hello {req.department_name},
+
+Your work request regarding the road:
+
+  {req.road.unique_code} - {req.road.road_name}
+
+has been updated by {response_by}.
+
+Status: {status}
+
+Work Description: {req.work_description}
+
+Thank you,
+Suvidha Manch Team
+"""
+
+        try:
+            send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [department_email])
+            return Response({"message": "Status email sent successfully"})
+        except Exception as e:
+            return Response({"error": str(e)}, status=500)
+    return Response(serializer.errors, status=400)

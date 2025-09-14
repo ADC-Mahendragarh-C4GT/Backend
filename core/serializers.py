@@ -261,3 +261,8 @@ class OtherDepartmentRequestEmailSerializer(serializers.Serializer):
     emails = serializers.ListField(
         child=serializers.EmailField()
     )
+
+class StatusEmailSerializer(serializers.Serializer):
+    status = serializers.CharField()
+    response_by = serializers.CharField()
+    department_email = serializers.EmailField()
