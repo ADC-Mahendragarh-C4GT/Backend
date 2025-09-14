@@ -329,27 +329,16 @@ def send_welcome_email(request):
     except CustomUser.DoesNotExist:
         return Response({"error": "No user found with this email"}, status=404)
 
-    subject = "Welcome to Suvidha Manch"
-    message = f"""
-    Hi {user.first_name or user.username},
+    raw_msg = settings.WELCOME_EMAIL_TEMPLATE
+    msg = raw_msg.replace("\\n", "\n").format(
+        first_name=user.first_name or user.username,
+        frontend_url=frontend_url,
+    )
 
-    Welcome to Suvidha Manch! 
-    
-    A Web App for road taxonomy and infrastructure tracking, enabling users to view, monitor, and manage municipal roads efficiently. 
-    
-    Your account has been successfully created.
-
-    It is highly advisable to change your password on first login to secure your credentials.
-    
-    Login here: {frontend_url}
-
-    Regards,
-    Suvidha Manch Team
-    """
     try:
         send_mail(
-            subject,
-            message,
+            "Welcome to Suvidha Manch",
+            msg,
             SENDERS_EMAIL,
             [user.email],
             fail_silently=False,
