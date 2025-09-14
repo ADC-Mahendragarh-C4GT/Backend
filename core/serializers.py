@@ -255,3 +255,9 @@ class InfraWorksByRoadSerializer(serializers.ModelSerializer):
         model = InfraWork
         fields = '__all__'
         read_only_fields = ['road', 'contractor']
+
+class OtherDepartmentRequestEmailSerializer(serializers.Serializer):
+    formData = serializers.DictField()
+    emails = serializers.ListField(
+        child=serializers.EmailField()
+    )

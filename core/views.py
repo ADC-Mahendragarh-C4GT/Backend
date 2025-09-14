@@ -648,3 +648,46 @@ class InfraWorksByRoadViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
     
+
+from django.core.mail import send_mail  
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+from rest_framework.response import Response
+from django.conf import settings
+SENDERS_EMAIL = settings.SENDERS_EMAIL
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def send_xen_email(request):
+
+    serializer = OtherDepartmentRequestEmailSerializer(data=request.data)
+    if serializer.is_valid():
+        formData = serializer.validated_data['formData']
+        emails = serializer.validated_data['emails']
+        road_data = formData.get("road")
+        
+        subject = f"New Department Request: {formData.get('departmentName')}"
+        body = f"""
+A new request has been submitted from {formData.get('departmentName')} for your review in Suvidha Manch Platform.
+
+Department Name: {formData.get('departmentName')}
+Requested By: {formData.get('requestedBy')}
+Road Id and Name : {road_data.get("unique_code")}, {road_data.get("road_name")}
+Contact Info: {formData.get('contactInfo')}
+Proposed Work: {formData.get('workDescription')}
+District = {road_data.get("district")}
+State = {road_data.get("state")}
+
+Please review and take necessary action.
+"""
+        for e in emails:
+            send_mail(
+                subject,
+                body,
+                SENDERS_EMAIL,
+                [e],
+                fail_silently=False
+            )
+        return Response({"message": "Email sent to XEN successfully"})
+        
+    return Response(serializer.errors, status=400)

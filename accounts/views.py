@@ -190,7 +190,15 @@ class UsersView(APIView):
         users = CustomUser.objects.all()
         serializer = UserSerializer(users, many=True)
         return Response(serializer.data)
-    
+
+class UsersWithoutAuthView(APIView):
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        users = CustomUser.objects.all()
+        serializer = UserSerializer(users, many=True)
+        return Response(serializer.data)
+
 
 class GetLoginUserView(APIView):
     permission_classes = [permissions.IsAuthenticated]
