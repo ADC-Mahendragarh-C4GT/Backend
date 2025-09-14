@@ -707,23 +707,19 @@ def send_status_email(request, pk):
         except OtherDepartmentRequest.DoesNotExist:
             return Response({"error": "Request not found"}, status=404)
 
+        raw_template = settings.EMAIL_TEMPLATE_FOR_STATUS_EMAIL
+        template = raw_template.replace("\\n", "\n")
+
+        body = template.format(
+            department_name=req.department_name,
+            road_code=req.road.unique_code,
+            road_name=req.road.road_name,
+            response_by=response_by,
+            status=status,
+            work_description=req.work_description,
+        )
         subject = f"Status Update: {req.department_name} request ({status})"
-        body = f"""
-Hello {req.department_name},
-
-Your work request regarding the road:
-
-  {req.road.unique_code} - {req.road.road_name}
-
-has been updated by {response_by}.
-
-Status: {status}
-
-Work Description: {req.work_description}
-
-Thank you,
-Suvidha Manch Team
-"""
+        
 
         try:
             send_mail(subject, body, settings.DEFAULT_FROM_EMAIL, [department_email])
