@@ -667,19 +667,20 @@ def send_xen_email(request):
         road_data = formData.get("road")
         
         subject = f"New Department Request: {formData.get('departmentName')}"
-        body = f"""
-A new request has been submitted from {formData.get('departmentName')} for your review in Suvidha Manch Platform.
+        raw_template = settings.EMAIL_TEMPLATE_FOR_NEW_REQUEST
+        template = raw_template.replace("\\n", "\n")
 
-Department Name: {formData.get('departmentName')}
-Requested By: {formData.get('requestedBy')}
-Road Id and Name : {road_data.get("unique_code")}, {road_data.get("road_name")}
-Contact Info: {formData.get('contactInfo')}
-Proposed Work: {formData.get('workDescription')}
-District = {road_data.get("district")}
-State = {road_data.get("state")}
-
-Please review and take necessary action.
-"""
+        body = template.format(
+            departmentName=formData.get("departmentName"),
+            requestedBy=formData.get("requestedBy"),
+            road_code=road_data.get("unique_code"),
+            road_name=road_data.get("road_name"),
+            contactInfo=formData.get("contactInfo"),
+            workDescription=formData.get("workDescription"),
+            district=road_data.get("district"),
+            state=road_data.get("state"),
+        )
+        
         for e in emails:
             send_mail(
                 subject,
