@@ -77,3 +77,7 @@ class UserUpdateSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     
+from rest_framework import serializers
+
+class WelcomeEmailSerializer(serializers.Serializer):
+    email = serializers.EmailField()

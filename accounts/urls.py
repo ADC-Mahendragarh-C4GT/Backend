@@ -20,4 +20,6 @@ urlpatterns = [
     path("validate-reset-token/<uidb64>/<token>/", validate_reset_token, name="validate-reset-token"),
     path("reset-password/<uidb64>/<token>/", reset_password, name="reset-password"),
 
+    path("send-welcome-email/", send_welcome_email, name="send-welcome-email"),
 ]
+

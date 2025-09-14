@@ -306,3 +306,47 @@ def reset_password(request, uidb64, token):
         user.save()
         return Response({"message": "Password reset successful"})
     return Response({"error": "Invalid or expired token"}, status=400)
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny]) 
+def send_welcome_email(request):
+    
+    email = request.data.get("email")
+    if not email:
+        return Response({"error": "Email is required"}, status=400)
+
+    try:
+        user = CustomUser.objects.get(email=email)
+    except CustomUser.DoesNotExist:
+        return Response({"error": "No user found with this email"}, status=404)
+
+    subject = "Welcome to Suvidha Manch"
+    message = f"""
+    Hi {user.first_name or user.username},
+
+    Welcome to Suvidha Manch! 
+    
+    A Web App for road taxonomy and infrastructure tracking, enabling users to view, monitor, and manage municipal roads efficiently. 
+    
+    Your account has been successfully created.
+
+    It is highly advisable to change your password on first login to secure your credentials.
+    
+    Login here: {frontend_url}
+
+    Regards,
+    Suvidha Manch Team
+    """
+    try:
+        send_mail(
+            subject,
+            message,
+            SENDERS_EMAIL,
+            [user.email],
+            fail_silently=False,
+        )
+    except Exception as e:
+        return Response({"error": f"Failed to send email: {str(e)}"}, status=500)
+
+    return Response({"message": "Welcome email sent successfully!"})
