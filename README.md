@@ -304,8 +304,3 @@ pg_restore -h $DB_HOST -U $DB_USER -d $DB_NAME --clean suvidha_YYYY-MM-DD.dump
   - `core/`: core domain CRUD and CSV import, email utilities
   - `audit/`: audit logs and reporting API
 - No cron jobs are required currently. Signals update infra work progress on `Update` creation.
-
-## Support
-- Operational owner: <to be assigned>
-- Development contact: <to be assigned>
-- Incident process: <link or description to be added by organisation>
