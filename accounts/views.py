@@ -164,7 +164,7 @@ class UpdateUserView(APIView):
             if field == "login_user":  # skip login_user field
                 continue
             old_value = old_details_snapshot.get(field)
-            if old_value:
+            if new_value:
                 changed_old_details[field] = old_value
                 changed_new_details[field] = new_value
 

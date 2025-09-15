@@ -7,33 +7,29 @@ from .models import *
 class AuditReportView(APIView):
     def get(self, request):
         serializer = AuditLogReportSerializer(data=request.query_params)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        if serializer.is_valid():
-            start_date = serializer.validated_data['start_date']
-            end_date = serializer.validated_data['end_date']
+        start_date = serializer.validated_data["start_date"]
+        end_date = serializer.validated_data["end_date"]
 
-            all_logs = list(UserAuditLog.objects.all()) + \
-                       list(RoadAuditLog.objects.all()) + \
-                       list(ContracterAuditLog.objects.all()) + \
-                       list(InfraWorkAuditLog.objects.all()) + \
-                       list(UpdateAuditLog.objects.all()) + \
-                       list(CommentAuditLog.objects.all()) + \
-                       list(OtherDepartmentRequestAuditLog.objects.all())
+        logs_by_model = {
+            "User": UserAuditLog.objects.filter(timestamp__range=(start_date, end_date)),
+            "Road": RoadAuditLog.objects.filter(timestamp__range=(start_date, end_date)),
+            "Contractor": ContracterAuditLog.objects.filter(timestamp__range=(start_date, end_date)),
+            "InfraWork": InfraWorkAuditLog.objects.filter(timestamp__range=(start_date, end_date)),
+            "Update": UpdateAuditLog.objects.filter(timestamp__range=(start_date, end_date)),
+            "Comment": CommentAuditLog.objects.filter(timestamp__range=(start_date, end_date)),
+            "OtherDepartment": OtherDepartmentRequestAuditLog.objects.filter(timestamp__range=(start_date, end_date)),
+        }
 
-            filtered_logs = [
-                log for log in all_logs
-                if start_date <= log.timestamp <= end_date
-            ]   
+        data = {
+            model: AuditLogSerializer(qs, many=True).data
+            for model, qs in logs_by_model.items()
+        }
 
-            serialized_logs = AuditLogSerializer(filtered_logs, many=True).data
-
-            return Response({
-                "message": "Audit Report fetched successfully",
-                "status": True,
-                "data": serialized_logs,
-                "start_date": start_date,
-                "end_date": end_date,
-                "count": len(filtered_logs),
-            })
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        return Response({
+            "status": True,
+            "message": "Audit Report fetched",
+            "data": data,
+        })  

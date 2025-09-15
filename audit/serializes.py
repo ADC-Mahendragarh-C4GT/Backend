@@ -4,7 +4,6 @@ class AuditLogReportSerializer(serializers.Serializer):
     start_date = serializers.DateTimeField(required=True)
     end_date = serializers.DateTimeField(required=True)
 
-from rest_framework import serializers
 
 class AuditLogSerializer(serializers.Serializer):
     id = serializers.IntegerField()
