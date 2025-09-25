@@ -1,0 +1,424 @@
+================================================================================
+                    SUVIDHA MANCH - BACKEND SETUP GUIDE
+                     Step-by-Step Local & Server Setup
+================================================================================
+
+This guide will help you set up the Suvidha Manch backend from scratch.
+Follow these steps exactly for both local development and server deployment.
+
+================================================================================
+                              PREREQUISITES
+================================================================================
+
+Before starting, ensure you have:
+1. Python 3.11 or higher installed
+2. PostgreSQL database server running
+3. Git installed (for cloning the repository)
+4. Command line access (Terminal/CMD/PowerShell)
+
+================================================================================
+STEP 1: CLONE AND NAVIGATE TO BACKEND DIRECTORY
+================================================================================
+
+# Clone the repository (replace with actual repository URL)
+git clone [your-repository-url]
+cd "C4GT - 2025/backend"
+
+# Verify you're in the correct directory
+# You should see these files: manage.py, requirements.txt, backend/, accounts/, core/, audit/
+
+================================================================================
+STEP 2: CREATE VIRTUAL ENVIRONMENT
+================================================================================
+
+# Create virtual environment in the backend directory
+python -m venv venv
+
+# Activate virtual environment
+# On Windows:
+venv\Scripts\activate
+
+# On Linux/Mac:
+source venv/bin/activate
+
+# Verify activation (you should see (venv) in your command prompt)
+which python  # Should show path to venv/bin/python
+
+================================================================================
+STEP 3: INSTALL ALL REQUIRED LIBRARIES
+================================================================================
+
+# Make sure you're in the backend directory and venv is activated
+# Install all dependencies from requirements.txt
+pip install -r requirements.txt
+
+# This will install:
+# - Django==5.2.3
+# - djangorestframework==3.16.0
+# - djangorestframework-simplejwt==5.5.0
+# - django-cors-headers==4.7.0
+# - django-environ==0.12.0
+# - drf-extra-fields==3.7.0
+# - filetype==1.2.0
+# - pillow==11.3.0
+# - psycopg2==2.9.10
+# - psycopg2-binary==2.9.10
+# - PyJWT==2.9.0
+# - python-magic-bin==0.4.14
+# - pytz==2025.2
+# - sqlparse==0.5.3
+# - tzdata==2025.2
+# - asgiref==3.8.1
+
+================================================================================
+STEP 4: UNDERSTAND THE PROJECT STRUCTURE AND MODELS
+================================================================================
+
+The backend has 3 main modules:
+
+4.1 ACCOUNTS MODULE (User Management)
+Location: accounts/models.py
+Purpose: Handles user authentication and management
+
+Models in accounts/models.py:
+- CustomUser: Extended Django user model
+  Fields: username, email, first_name, last_name, user_type, phone_number, isActive
+  Purpose: Manages all system users with different roles (JE, AE, XEN, SE, CE, etc.)
+
+4.2 CORE MODULE (Main Business Logic)
+Location: core/models.py
+Purpose: Contains all main business entities
+
+Models in core/models.py:
+- Road: Master data for roads
+  Fields: unique_code, road_name, ward_number, location, length_km, width_m, 
+          road_type, material_type, road_category, area_name, district, state, isActive
+  Purpose: Stores information about all roads in the system
+
+- Contractor: Contractor information
+  Fields: contractor_name, contact_person, contact_number, email, address, isActive
+  Purpose: Manages contractor details for infrastructure works
+
+- InfraWork: Infrastructure work projects
+  Fields: road (Foreign Key), phase, description, start_date, end_date, progress_percent,
+          cost, contractor (Foreign Key), completedOrpending, defect_liability_period,
+          image, latitude, longitude, isActive, pdfDescription
+  Purpose: Tracks infrastructure work projects and their progress
+
+- Update: Progress updates for infrastructure works
+  Fields: work (Foreign Key), update_date, status_note, progress_percent, image,
+          latitude, longitude, isActive, pdfDescription
+  Purpose: Records periodic progress updates for infrastructure works
+
+- Comments: Comments on updates
+  Fields: update (Foreign Key), infra_work (Foreign Key), comment_text, commenter (Foreign Key),
+          comment_date, deleteFlag, deleteBy (Foreign Key), isActive
+  Purpose: Allows users to comment on work updates
+
+- OtherDepartmentRequest: Inter-department requests
+  Fields: department_name, road (Foreign Key), work_description, requested_by,
+          contact_info, status, response_by, response_date, submitted_at,
+          isActive, pdfDescription
+  Purpose: Manages requests from other departments
+
+4.3 AUDIT MODULE (Logging System)
+Location: audit/models.py
+Purpose: Tracks all changes made to the system
+
+Models in audit/models.py:
+- UserAuditLog: Tracks user-related changes
+- RoadAuditLog: Tracks road-related changes
+- ContracterAuditLog: Tracks contractor-related changes
+- InfraWorkAuditLog: Tracks infrastructure work changes
+- UpdateAuditLog: Tracks update-related changes
+- CommentAuditLog: Tracks comment-related changes
+- OtherDepartmentRequestAuditLog: Tracks request-related changes
+
+Each audit model stores:
+- action (CREATE/UPDATE/DELETE)
+- performed_by (user who made the change)
+- old_details_of_affected_[entity] (previous state)
+- new_details_of_affected_[entity] (new state)
+- timestamp (when the change occurred)
+
+================================================================================
+STEP 5: CREATE AND CONFIGURE .env FILE
+================================================================================
+
+# Create .env file in the backend directory (same level as manage.py)
+# You can create it manually or use command line:
+
+# On Windows:
+type nul > .env
+
+# On Linux/Mac:
+touch .env
+
+# Now edit the .env file with the following content:
+
+================================================================================
+.env FILE CONTENT - COPY AND PASTE THIS:
+================================================================================
+
+# Django Core Settings
+SECRET_KEY=your-very-secure-secret-key-minimum-50-characters-long-change-this
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1,0.0.0.0
+TIME_ZONE=Asia/Kolkata
+
+# Database Configuration (PostgreSQL)
+DB_NAME=suvidha_manch_db
+DB_USER=postgres
+DB_PASSWORD=your_postgres_password
+DB_HOST=localhost
+DB_PORT=5432
+
+# Pagination and CORS
+DEFAULT_PAGE_SIZE=20
+CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+CORS_ALLOW_CREDENTIALS=True
+
+# User Types Configuration
+USER_TYPE_CHOICES=JE:Junior Engineer,AE:Assistant Engineer,XEN:Executive Engineer,SE:Superintending Engineer,CE:Chief Engineer,JCMC:Joint Commissioner,CMC:Commissioner,ADMIN:Administrator
+
+# Road Classification
+ROAD_CATEGORY_CHOICES=NH:National Highway,SH:State Highway,MDR:Major District Road,ODR:Other District Road,Village:Village Road,Urban:Urban Road
+ROAD_TYPE_CHOICES=Asphalt:Asphalt,Concrete:Concrete,Macadam:Water Bound Macadam,Other:Other
+MATERIAL_TYPE_CHOICES=Bitumen:Bitumen,RCC:Reinforced Cement Concrete,BM:Bituminous Macadam,Other:Other
+
+# JWT Authentication Settings
+SIMPLE_JWT_ACCESS_TOKEN_LIFETIME=60
+SIMPLE_JWT_REFRESH_TOKEN_LIFETIME=7
+SIMPLE_JWT_ROTATE_REFRESH_TOKENS=False
+SIMPLE_JWT_BLACKLIST_AFTER_ROTATION=True
+SIMPLE_JWT_UPDATE_LAST_LOGIN=False
+
+# URLs
+SITE_URL=http://localhost:8000
+FRONTEND_URL=http://localhost:3000
+
+# Email Configuration (Gmail SMTP)
+EMAIL_PORT=587
+EMAIL_HOST_USER=your-email@gmail.com
+EMAIL_HOST_PASSWORD=your-gmail-app-password
+SENDERS_EMAIL=your-email@gmail.com
+DEFAULT_FROM_EMAIL=your-email@gmail.com
+
+# Email Templates
+EMAIL_TEMPLATE_FOR_STATUS_EMAIL=Hello {department_name},\nStatus: {status}\nRoad: {road_code} - {road_name}\nDescription: {work_description}\nResponse by: {response_by}
+EMAIL_TEMPLATE_FOR_NEW_REQUEST=New Request from {requestedBy} ({departmentName}) for {road_code} - {road_name} in {district}, {state}.\nContact: {contactInfo}\nWork: {workDescription}
+WELCOME_EMAIL_TEMPLATE=Welcome {first_name}!\nVisit: {frontend_url}
+
+================================================================================
+IMPORTANT: EDIT THESE VALUES IN YOUR .env FILE:
+================================================================================
+
+1. SECRET_KEY: Generate a new secret key (minimum 50 characters)
+   You can generate one at: https://djecrety.ir/
+
+2. DB_PASSWORD: Your PostgreSQL password
+   This should be the password you set when installing PostgreSQL
+
+3. EMAIL_HOST_USER: Your Gmail address
+4. EMAIL_HOST_PASSWORD: Your Gmail App Password (not your regular password)
+   To get App Password:
+   - Go to Google Account settings
+   - Security → 2-Step Verification → App passwords
+   - Generate a new app password for "Mail"
+
+5. SENDERS_EMAIL: Same as EMAIL_HOST_USER
+6. DEFAULT_FROM_EMAIL: Same as EMAIL_HOST_USER
+
+================================================================================
+STEP 6: SETUP POSTGRESQL DATABASE
+================================================================================
+
+# First, make sure PostgreSQL is running
+# On Windows: Check Services or start PostgreSQL service
+# On Linux: sudo systemctl start postgresql
+# On Mac: brew services start postgresql
+
+# Connect to PostgreSQL and create database
+psql -U postgres
+
+# In PostgreSQL prompt, run these commands:
+CREATE DATABASE suvidha_manch_db;
+CREATE USER suvidha_user WITH PASSWORD 'your_postgres_password';
+GRANT ALL PRIVILEGES ON DATABASE suvidha_manch_db TO suvidha_user;
+ALTER USER suvidha_user CREATEDB;
+\q
+
+# Update your .env file to use the new user:
+DB_USER=suvidha_user
+
+================================================================================
+STEP 7: RUN DJANGO MIGRATIONS
+================================================================================
+
+# Make sure you're in the backend directory with venv activated
+# Check Django configuration
+python manage.py check
+
+# Create migration files (if any models have changed)
+python manage.py makemigrations
+
+# Apply migrations to create database tables
+python manage.py migrate
+
+# This will create all the tables for:
+# - accounts (CustomUser)
+# - core (Road, Contractor, InfraWork, Update, Comments, OtherDepartmentRequest)
+# - audit (All audit log tables)
+# - Django built-in tables (auth, sessions, etc.)
+
+================================================================================
+STEP 8: CREATE SUPERUSER (ADMIN USER)
+================================================================================
+
+# Create an admin user to access Django admin panel
+python manage.py createsuperuser
+
+# Follow the prompts:
+# Username: admin
+# Email address: admin@example.com
+# Password: [enter a strong password]
+# Password (again): [confirm password]
+
+================================================================================
+STEP 9: CREATE MEDIA DIRECTORIES
+================================================================================
+
+# Create directories for file uploads
+mkdir media
+mkdir media/infra_images
+mkdir media/infra_pdfs
+mkdir media/other_department_pdfs
+
+# On Windows, use:
+# md media\infra_images
+# md media\infra_pdfs
+# md media\other_department_pdfs
+
+================================================================================
+STEP 10: START THE DEVELOPMENT SERVER
+================================================================================
+
+# Start the Django development server
+python manage.py runserver
+
+# The server will start at: http://127.0.0.1:8000/
+# You should see output like:
+# Starting development server at http://127.0.0.1:8000/
+# Quit the server with CTRL+C
+
+================================================================================
+STEP 11: VERIFY INSTALLATION
+================================================================================
+
+# Open your browser and visit these URLs:
+
+1. Main API: http://127.0.0.1:8000/
+2. Admin Panel: http://127.0.0.1:8000/admin/
+   - Login with the superuser credentials you created
+3. API Documentation: http://127.0.0.1:8000/api/roads/
+4. User Types: http://127.0.0.1:8000/accounts/user-types/
+
+# You should see JSON responses or the admin login page
+
+================================================================================
+STEP 12: TEST API ENDPOINTS
+================================================================================
+
+# Test user registration (optional - creates a test user)
+curl -X POST http://127.0.0.1:8000/accounts/register/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "testuser",
+    "email": "test@example.com",
+    "password": "testpassword123",
+    "password2": "testpassword123",
+    "first_name": "Test",
+    "last_name": "User",
+    "user_type": "JE",
+    "phone_number": "1234567890"
+  }'
+
+# Test user login
+curl -X POST http://127.0.0.1:8000/accounts/login/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "test@example.com",
+    "password": "testpassword123",
+    "user_type": "JE"
+  }'
+
+================================================================================
+TROUBLESHOOTING COMMON ISSUES
+================================================================================
+
+Issue 1: "ModuleNotFoundError: No module named 'django'"
+Solution: Make sure virtual environment is activated
+- Windows: venv\Scripts\activate
+- Linux/Mac: source venv/bin/activate
+
+Issue 2: "django.db.utils.OperationalError: could not connect to server"
+Solution: 
+- Check if PostgreSQL is running
+- Verify database credentials in .env file
+- Make sure database exists
+
+Issue 3: "Permission denied" when creating media directories
+Solution: 
+- Windows: Run command prompt as administrator
+- Linux/Mac: Use sudo if needed
+
+Issue 4: "SECRET_KEY not set" error
+Solution: Make sure .env file exists and has SECRET_KEY
+
+Issue 5: "CORS" errors in browser
+Solution: Check CORS_ALLOWED_ORIGINS in .env file
+
+================================================================================
+FOR PRODUCTION DEPLOYMENT
+================================================================================
+
+For server deployment, follow these additional steps:
+
+1. Set DEBUG=False in .env
+2. Update ALLOWED_HOSTS with your domain/IP
+3. Use a proper web server (Nginx + Gunicorn)
+4. Set up SSL certificates
+5. Configure proper database backups
+6. Set up monitoring and logging
+
+Refer to the GOVERNMENT_DEPLOYMENT_SETUP.txt file for detailed production setup.
+
+================================================================================
+NEXT STEPS
+================================================================================
+
+After successful setup:
+1. Access Django admin at http://127.0.0.1:8000/admin/
+2. Create additional users if needed
+3. Test all API endpoints
+4. Integrate with frontend application
+5. Set up production deployment
+
+================================================================================
+SUPPORT AND DOCUMENTATION
+================================================================================
+
+- Django Admin: http://127.0.0.1:8000/admin/
+- API Endpoints: See README.md for complete list
+- Model Documentation: See above for detailed model descriptions
+- Production Setup: See GOVERNMENT_DEPLOYMENT_SETUP.txt
+
+For issues or questions, refer to the troubleshooting section above or
+contact the development team.
+
+================================================================================
+                                 END OF GUIDE
+================================================================================
+
+This guide covers the complete setup process for the Suvidha Manch backend.
+Follow each step carefully for successful installation and deployment.
