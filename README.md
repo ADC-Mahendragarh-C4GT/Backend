@@ -201,8 +201,8 @@ pip install -r requirements.txt
 # Apply migrations
 python manage.py migrate
 
-# Create admin
-python manage.py createsuperuser
+# collect all static files
+python manage.py collectstatic
 
 # Ensure media directory exists and is writable
 mkdir -p media
